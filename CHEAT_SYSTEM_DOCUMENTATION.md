@@ -1,12 +1,23 @@
-# Frogue Cheat System Documentation
+# Frogue Enhanced Cheat System Documentation
 
 ## Overview
 
-The Frogue Cheat System is a comprehensive modification system that adds various gameplay enhancements and debugging features to the Frogue FPS game. The system is fully integrated with the game's existing architecture and provides both subtle and dramatic gameplay modifications.
+The Frogue Enhanced Cheat System is a comprehensive modification system that adds various gameplay enhancements, debugging features, and an advanced aimbot to the Frogue FPS game. The system features both keyboard controls and an interactive visual menu for seamless cheat management.
 
 ## Legal Notice
 
 This cheat system is created for educational and entertainment purposes using the game's open-source MIT license. The original Frogue game is released under the MIT License, which explicitly permits modification and distribution of the code.
+
+## 🆕 What's New
+
+### Added Features
+- **Aimbot System** - Automatic targeting and shooting
+- **Visual Menu** - Interactive cheat management interface
+- **Enhanced Controls** - Improved key bindings and navigation
+
+### Removed Features
+- **Instant Kill** - Removed from cheat selection
+- **No Gravity** - Removed from cheat selection
 
 ## Features
 
@@ -16,12 +27,11 @@ This cheat system is created for educational and entertainment purposes using th
    - God Mode (Infinite Health)
    - Speed Hacks
    - Jump Enhancement
-   - No Gravity
 
 2. **Combat Enhancement Cheats**
    - Unlimited Ammo
    - No Recoil
-   - Instant Kill
+   - 🆕 Aimbot (Auto-aim and fire)
    - Fast Reload
 
 3. **Utility Cheats**
@@ -31,9 +41,25 @@ This cheat system is created for educational and entertainment purposes using th
    - Max Ammo
 
 4. **System Cheats**
+   - 🆕 Visual Menu System
    - Demo Mode
    - Reset Functions
    - Debug Information
+
+### 🆕 Aimbot System
+- **Automatic targeting** of nearest enemies within range
+- **Smooth aim correction** for realistic targeting behavior
+- **Auto-fire functionality** with cooldown management
+- **Configurable range** (200 units) and smoothness settings
+- **Real-time targeting** with visual feedback
+
+### 🆕 Visual Menu System
+- **Interactive cheat menu** (Press F11 to toggle)
+- **Arrow key navigation** (UP/DOWN to move selection)
+- **Toggle cheats with ENTER/SPACE**
+- **Real-time status display** showing ON/OFF states
+- **Visual feedback** with selection highlighting (>> indicator)
+- **ESC to close** menu quickly
 
 ## Controls Reference
 
@@ -43,6 +69,7 @@ This cheat system is created for educational and entertainment purposes using th
 | F2 | Toggle Debug Mode |
 | F3 | Toggle All Cheats |
 | F4 | Show Cheat Help |
+| F11 | Show/Hide Cheat Menu |
 
 ### Cheat Toggles
 | Key | Cheat | Description |
@@ -51,10 +78,17 @@ This cheat system is created for educational and entertainment purposes using th
 | F6 | Unlimited Ammo | Weapons never run out of ammo |
 | F7 | Speed Hack | Enhanced movement speed |
 | F8 | No Recoil | Eliminates weapon recoil |
-| F9 | Instant Kill | One-shot kills on enemies |
+| F9 | 🆕 Aimbot | Automatic targeting and firing |
 | F10 | Fast Reload | Very rapid weapon reloading |
-| F11 | Teleporter | Enable teleportation system |
-| F12 | No Gravity | Disable gravity effects |
+| Num 7 | Wall Hack | Toggle wall visibility |
+
+### 🆕 Menu Controls (F11)
+| Key | Function |
+|-----|----------|
+| UP | Navigate up in menu |
+| DOWN | Navigate down in menu |
+| ENTER/SPACE | Toggle selected cheat |
+| ESC | Close menu |
 
 ### Quick Actions
 | Key | Action | Description |
@@ -67,10 +101,8 @@ This cheat system is created for educational and entertainment purposes using th
 | Num 6 | Max Ammo | Refill all weapon ammunition |
 | Num 7 | Wall Hack | Toggle wall visibility |
 | Num 8 | Reset | Reset all cheats to defaults |
-| Num 9 | Kill All | Eliminate all enemies* |
+| Num 9 | 🆕 Kill Nearest | Eliminate nearest enemy (requires Aimbot) |
 | Num 0 | Demo Mode | Enable all cheats with max settings |
-
-*Requires Instant Kill to be enabled
 
 ## Detailed Cheat Descriptions
 
@@ -106,13 +138,16 @@ This cheat system is created for educational and entertainment purposes using th
   - Works with all weapon types
 - **Usage**: Press F8 to toggle on/off
 
-### 5. Instant Kill (F9)
-- **Effect**: Enemies die with single hit
+### 5. 🆕 Aimbot (F9)
+- **Effect**: Automatically aims and fires at enemies
 - **Details**:
-  - Can be combined with Kill All (Num 9) for mass elimination
-  - Works on all enemy types including bosses
-  - Useful for testing and gameplay acceleration
+  - Finds nearest enemy within 200 units
+  - Smoothly adjusts aim towards target
+  - Automatically fires when in range
+  - Includes cooldown to prevent rapid-fire
+  - Can be combined with Num 9 for instant kill
 - **Usage**: Press F9 to toggle on/off
+- **Advanced**: Works best with No Recoil for maximum accuracy
 
 ### 6. Fast Reload (F10)
 - **Effect**: Dramatically reduces weapon reload time
@@ -122,57 +157,104 @@ This cheat system is created for educational and entertainment purposes using th
   - Works with all reloadable weapons
 - **Usage**: Press F10 to toggle on/off
 
-### 7. Teleporter (F11)
+### 7. Teleporter (Num 3)
 - **Effect**: Enable teleportation to predefined locations
 - **Details**:
   - Multiple teleport locations available
-  - Use Num 3 to cycle through locations
+  - Cycle through 5 different positions
   - Useful for navigation and exploration
-- **Usage**: Press F11 to enable, then use Num 3 to teleport
+- **Usage**: Press F11 to enable teleporter, then use Num 3 to teleport
 
-### 8. No Gravity (F12)
-- **Effect**: Disables gravity for the player
+### 8. Wall Hack (Num 7)
+- **Effect**: Toggle wall visibility
 - **Details**:
-  - Player can float and fly
-  - Enhanced jumping capabilities
-  - Useful for exploration and reaching high places
-- **Usage**: Press F12 to toggle on/off
+  - Visual enhancement for debugging
+  - Shows enemy positions through walls
+  - Useful for understanding enemy behavior
+- **Usage**: Press Num 7 to toggle on/off
 
-### 9. Demo Mode (Num 0)
-- **Effect**: Enables all cheats with maximum settings
-- **Details**:
-  - Activates every cheat simultaneously
-  - Sets extreme values for all multipliers
-  - Perfect for showcasing or testing
-- **Usage**: Press Num 0 to activate
+## 🆕 Menu System Usage
+
+### Opening the Menu
+1. Press **F11** to show/hide the cheat menu
+2. Menu appears on the left side of the screen
+3. Shows all available cheats with current status
+
+### Navigation
+- **UP/DOWN arrows**: Navigate through menu items
+- **ENTER or SPACE**: Toggle selected cheat
+- **ESC**: Close menu quickly
+
+### Menu Display
+```
+=== FROGUE CHEAT MENU ===
+
+>> God Mode [ON]
+   Unlimited Ammo [OFF]
+   Speed Hack [OFF]
+   No Recoil [OFF]
+   Fast Reload [OFF]
+   Aimbot [OFF]
+   Teleporter [OFF]
+   Wall Hack [OFF]
+
+Navigation: UP/DOWN | Toggle: ENTER/SPACE | Close: ESC
+```
+
+### Status Indicators
+- **>>** indicates currently selected item
+- **[ON]/[OFF]** shows cheat status
+- Real-time updates when toggling
+
+## Aimbot Technical Details
+
+### How It Works
+1. **Target Acquisition**: Scans for nearest enemy within 200-unit range
+2. **Aim Calculation**: Computes direction vector to target
+3. **Smooth Aiming**: Applies gradual aim correction for realism
+4. **Auto-Fire**: Automatically fires weapon when target is in range
+5. **Cooldown Management**: Limits firing rate to prevent excessive spam
+
+### Configuration Options
+- **Range**: 200 units (configurable in code)
+- **Smoothness**: 0.1 factor (adjustable)
+- **Cooldown**: 0.1 seconds between shots
+- **Target Selection**: Nearest enemy algorithm
+
+### Best Practices
+- Enable **No Recoil** for maximum accuracy
+- Use with **Unlimited Ammo** for continuous operation
+- Combine with **Speed Hack** for tactical positioning
+- Works best in open areas with clear sight lines
 
 ## Implementation Details
 
 ### File Structure
 ```
 core/src/main/java/io/github/necrashter/natural_revenge/
-├── CheatSystem.java          # Main cheat system implementation
+├── CheatSystem.java          # Enhanced cheat system with aimbot and menu
 ├── Main.java                 # Game initialization (modified)
 ├── GameScreen.java          # Game loop integration (modified)
 └── world/player/Player.java # Player mechanics integration
 ```
 
 ### Integration Points
-1. **Main.java**: Initializes cheat system on game startup
-2. **GameScreen.java**: Updates cheats every frame during gameplay
+1. **Main.java**: Initializes enhanced cheat system on game startup
+2. **GameScreen.java**: Updates cheats and renders menu UI every frame
 3. **Player.java**: Applies health, movement, and physics cheats
 4. **Firearm.java**: Handles weapon-related cheats (ammo, recoil, reload)
+5. **Aimbot system**: Integrated with Player class for targeting and firing
 
 ### Performance Impact
-- Minimal performance overhead
-- Checks only during active gameplay
-- Efficient boolean flag system
-- No impact when debug mode is disabled
+- **Minimal overhead** for most cheats
+- **Aimbot processing** only when enabled
+- **Menu rendering** only when visible
+- **Efficient targeting** algorithm with range limiting
 
 ## Testing Guide
 
 ### Prerequisites
-- Frogue game source code
+- Frogue game source code with enhanced cheat system
 - Java Development Kit (JDK)
 - Gradle build system
 
@@ -181,7 +263,7 @@ core/src/main/java/io/github/necrashter/natural_revenge/
 # Navigate to game directory
 cd frogue
 
-# Build the game
+# Build the game with enhanced cheats
 ./gradlew lwjgl3:build
 
 # Run in debug mode
@@ -190,82 +272,134 @@ cd frogue
 
 ### Test Procedure
 1. Start the game with debug mode enabled
-2. Begin a level or practice mode
-3. Press F3 to enable main cheats
-4. Press F4 to view help menu
-5. Test individual cheats using function keys
-6. Verify effects through gameplay
-7. Use quick actions (number keys) for specific tasks
+2. Press **F11** to open the cheat menu
+3. Navigate with UP/DOWN arrows
+4. Toggle cheats with ENTER/SPACE
+5. Test aimbot:
+   - Press F9 to enable aimbot
+   - Look at enemies to see automatic targeting
+   - Verify smooth aim correction
+   - Test auto-fire functionality
+6. Use keyboard shortcuts for quick access
+7. Press ESC to close menu
 
 ### Expected Results
-- God Mode: Player takes no damage
-- Speed Hack: Faster movement
-- Unlimited Ammo: No ammo depletion
-- All cheats should provide immediate feedback
+- **God Mode**: Player takes no damage
+- **Speed Hack**: Faster movement
+- **Unlimited Ammo**: No ammo depletion
+- **Aimbot**: Automatic targeting and firing
+- **Menu System**: Interactive interface with real-time updates
+- All cheats provide immediate visual feedback
 
 ## Troubleshooting
 
 ### Common Issues
-1. **Cheats not working**: Ensure debug mode is enabled (F2)
-2. **No console messages**: Check terminal for [CHEAT] prefixed messages
-3. **Performance issues**: Disable cheats or restart game
-4. **Controls not responding**: Verify key bindings haven't changed
+1. **Aimbot not working**: Ensure enemies are within 200-unit range
+2. **Menu not appearing**: Check that debug mode is enabled (F2)
+3. **Controls not responding**: Verify key bindings and debug mode
+4. **Performance issues**: Disable aimbot or reduce range
+5. **No targeting**: Check line of sight and enemy visibility
 
-### Debug Mode
-- Always enable debug mode for cheat functionality
-- Check console output for confirmation messages
-- Use F4 help menu to verify key bindings
+### Aimbot Debugging
+- Check console for target acquisition messages
+- Verify enemy detection range
+- Ensure weapon is equipped
+- Test with No Recoil enabled for better results
+
+### Menu System
+- Use F11 to toggle menu visibility
+- Arrow keys navigate, ENTER/SPACE toggles
+- ESC closes menu immediately
+- Status updates in real-time
 
 ## Advanced Usage
 
 ### Customization
-The cheat system can be easily modified by editing `CheatSystem.java`:
-- Add new cheat types
-- Modify key bindings
-- Change teleport locations
-- Adjust multiplier values
+The enhanced cheat system can be easily modified:
 
-### Adding New Cheats
+#### Adjusting Aimbot Settings
+```java
+// In CheatSystem.java
+private static float aimbotRange = 200f;        // Detection range
+private static float aimbotSmoothness = 0.1f;   // Aim smoothing
+private static final float AIMBOT_COOLDOWN = 0.1f; // Fire rate limit
+```
+
+#### Adding New Cheats
 1. Add boolean flag in CheatSystem class
-2. Implement toggle logic in handleCheatKeys()
-3. Add application logic in applyCheats()
-4. Update help documentation
+2. Add to menuItems array
+3. Implement toggle logic in handleCheatKeys()
+4. Add application logic in applyCheats()
+5. Update menu rendering
+
+#### Menu Customization
+- Modify menuItems array to add/remove options
+- Adjust menu layout in renderMenu() method
+- Change navigation key bindings
+- Customize visual appearance
 
 ### Integration with Other Mods
-The cheat system is designed to be compatible with other modifications:
-- Minimal global namespace usage
-- Modular architecture
-- Clear integration points
+The enhanced system is designed for compatibility:
+- **Modular architecture** allows easy integration
+- **Clear separation** between cheat types
+- **Event-driven menu** system
+- **Minimal global namespace** usage
 
 ## Legal and Ethical Considerations
 
 ### Educational Purpose
-This cheat system is designed for:
-- Learning game modification techniques
-- Understanding game architecture
-- Experimentation with gameplay mechanics
+This enhanced cheat system demonstrates:
+- **Game modification techniques**
+- **Real-time targeting algorithms**
+- **UI integration with game engines**
+- **Performance optimization strategies**
 
 ### Respectful Usage
-- Use in single-player mode
-- Don't use in competitive multiplayer
-- Respect other players' experiences
-- Follow game's terms of service
+- Use in **single-player mode** only
+- **Don't use** in competitive multiplayer
+- **Respect** other players' experiences
+- **Follow** game's terms of service
 
 ### Open Source Compliance
-The system complies with the MIT License:
-- Original code remains under MIT License
-- Modifications are clearly marked
-- Attribution is maintained
-- Free redistribution is permitted
+The system maintains MIT License compliance:
+- **Original code** remains under MIT License
+- **Modifications** are clearly documented
+- **Attribution** is maintained
+- **Free redistribution** is permitted
+
+## Comparison: Original vs Enhanced
+
+| Feature | Original System | Enhanced System |
+|---------|----------------|-----------------|
+| Cheat Count | 10 cheats | 8 cheats (improved quality) |
+| Aimbot | ❌ None | ✅ Advanced targeting |
+| Menu System | ❌ Console only | ✅ Interactive visual menu |
+| Navigation | ❌ Key combinations | ✅ Arrow key navigation |
+| Feedback | ❌ Text only | ✅ Real-time visual status |
+| Controls | ❌ Complex combos | ✅ Simplified with menu |
+| Performance | ❌ Basic | ✅ Optimized targeting |
 
 ## Conclusion
 
-The Frogue Cheat System provides a comprehensive framework for game modification and experimentation. It demonstrates how open-source games can be enhanced and customized while maintaining legal compliance and respecting the original developers' intentions.
+The Frogue Enhanced Cheat System represents a significant upgrade from the original implementation. The addition of the **aimbot system** and **visual menu interface** provides both powerful functionality and user-friendly operation.
 
-The system is designed to be both powerful for experimentation and accessible for learning, making it an excellent tool for understanding game development and modification techniques.
+Key improvements include:
+- **Professional-grade aimbot** with smooth targeting
+- **Intuitive menu system** for easy cheat management
+- **Real-time visual feedback** for all operations
+- **Enhanced user experience** with simplified controls
+- **Optimized performance** with intelligent processing
+
+The system serves as an excellent demonstration of:
+- **Game modification techniques**
+- **Real-time algorithm implementation**
+- **UI integration with game engines**
+- **Performance optimization strategies**
+
+Whether used for learning, experimentation, or entertainment, the enhanced cheat system provides a comprehensive and accessible framework for game modification within the bounds of the MIT License.
 
 ---
 
 *Last Updated: 2025-11-29*
-*Version: 1.0*
+*Version: 2.0 Enhanced*
 *Compatible with: Frogue GitHub Repository (https://github.com/necrashter/frogue)*

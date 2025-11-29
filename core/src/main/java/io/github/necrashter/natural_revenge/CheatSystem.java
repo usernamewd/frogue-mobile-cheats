@@ -3,26 +3,27 @@ package io.github.necrashter.natural_revenge;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector3;
 import io.github.necrashter.natural_revenge.world.player.Player;
 import io.github.necrashter.natural_revenge.world.player.Firearm;
 import io.github.necrashter.natural_revenge.world.player.PlayerWeapon;
+import io.github.necrashter.natural_revenge.world.entities.GameEntity;
 
 /**
- * Comprehensive cheat system for Frogue
+ * Enhanced cheat system for Frogue with aimbot and visual menu
  * Provides various gameplay modifications and debugging features
  */
 public class CheatSystem {
     
-    // Cheat states
+    // Cheat states (removed instantKill and noGravity)
     public static boolean godMode = false;
     public static boolean unlimitedAmmo = false;
     public static boolean infiniteHealth = false;
     public static boolean speedHack = false;
     public static boolean noRecoil = false;
     public static boolean fastReload = false;
-    public static boolean instantKill = false;
+    public static boolean aimbot = false;
     public static boolean teleporter = false;
-    public static boolean noGravity = false;
     public static boolean wallHack = false;
     
     // Movement cheats
@@ -39,17 +40,26 @@ public class CheatSystem {
     };
     private static int currentTeleportIndex = 0;
     
+    // Aimbot settings
+    private static float aimbotRange = 200f;
+    private static float aimbotSmoothness = 0.1f;
+    private static GameEntity currentTarget = null;
+    private static float lastAimbotTime = 0f;
+    private static final float AIMBOT_COOLDOWN = 0.1f; // Fire rate limit
+    
+    // Menu system
+    public static boolean showCheatMenu = false;
+    private static int selectedMenuItem = 0;
+    private static final String[] menuItems = {
+        "God Mode", "Unlimited Ammo", "Speed Hack", "No Recoil", 
+        "Fast Reload", "Aimbot", "Teleporter", "Wall Hack"
+    };
+    
     // Key binding constants
     private static final int[] NUM_KEYS = {
         Input.Keys.NUM_1, Input.Keys.NUM_2, Input.Keys.NUM_3, Input.Keys.NUM_4,
         Input.Keys.NUM_5, Input.Keys.NUM_6, Input.Keys.NUM_7, Input.Keys.NUM_8,
         Input.Keys.NUM_9, Input.Keys.NUM_0
-    };
-    
-    private static boolean[] cheatStates = {
-        godMode, unlimitedAmmo, infiniteHealth, speedHack,
-        noRecoil, fastReload, instantKill, teleporter,
-        noGravity, wallHack
     };
     
     /**
@@ -60,6 +70,7 @@ public class CheatSystem {
         System.out.println("Press F2 to toggle debug mode");
         System.out.println("Press F3 to toggle cheats");
         System.out.println("Press F4 to show/hide cheat help");
+        System.out.println("Press F11 to show/hide cheat menu");
         System.out.println("=================================");
         
         // Enable debug mode by default for cheats
@@ -71,12 +82,14 @@ public class CheatSystem {
      */
     public static void update(float delta, Player player) {
         handleGlobalKeys();
+        handleMenuControls();
         handleCheatKeys(player);
         applyCheats(player, delta);
+        updateAimbot(player, delta);
     }
     
     /**
-     * Handle global keys (F2, F3, F4)
+     * Handle global keys (F2, F3, F4, F11)
      */
     private static void handleGlobalKeys() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.F2)) {
@@ -91,15 +104,60 @@ public class CheatSystem {
         if (Gdx.input.isKeyJustPressed(Input.Keys.F4)) {
             showCheatHelp();
         }
+        
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F11)) {
+            showCheatMenu = !showCheatMenu;
+            showMessage("Cheat Menu: " + (showCheatMenu ? "SHOW" : "HIDE"));
+        }
     }
     
     /**
-     * Handle cheat-specific keys (F5-F12 and number keys)
+     * Handle menu navigation controls
+     */
+    private static void handleMenuControls() {
+        if (!showCheatMenu) return;
+        
+        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+            selectedMenuItem = Math.max(0, selectedMenuItem - 1);
+        }
+        
+        if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+            selectedMenuItem = Math.min(menuItems.length - 1, selectedMenuItem + 1);
+        }
+        
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || 
+            Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            toggleCheatByIndex(selectedMenuItem);
+        }
+        
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            showCheatMenu = false;
+        }
+    }
+    
+    /**
+     * Toggle cheat by menu index
+     */
+    private static void toggleCheatByIndex(int index) {
+        switch (index) {
+            case 0: godMode = !godMode; showMessage("God Mode: " + (godMode ? "ON" : "OFF")); break;
+            case 1: unlimitedAmmo = !unlimitedAmmo; showMessage("Unlimited Ammo: " + (unlimitedAmmo ? "ON" : "OFF")); break;
+            case 2: speedHack = !speedHack; showMessage("Speed Hack: " + (speedHack ? "ON" : "OFF")); break;
+            case 3: noRecoil = !noRecoil; showMessage("No Recoil: " + (noRecoil ? "ON" : "OFF")); break;
+            case 4: fastReload = !fastReload; showMessage("Fast Reload: " + (fastReload ? "ON" : "OFF")); break;
+            case 5: aimbot = !aimbot; showMessage("Aimbot: " + (aimbot ? "ON" : "OFF")); break;
+            case 6: teleporter = !teleporter; showMessage("Teleporter: " + (teleporter ? "ON" : "OFF")); break;
+            case 7: wallHack = !wallHack; showMessage("Wall Hack: " + (wallHack ? "ON" : "OFF")); break;
+        }
+    }
+    
+    /**
+     * Handle cheat-specific keys (F5-F10 and number keys)
      */
     private static void handleCheatKeys(Player player) {
         if (!Main.debugMode) return;
         
-        // Function keys for main cheats
+        // Function keys for main cheats (removed F9, F12)
         if (Gdx.input.isKeyJustPressed(Input.Keys.F5)) {
             godMode = !godMode;
             if (godMode) infiniteHealth = true;
@@ -122,8 +180,8 @@ public class CheatSystem {
         }
         
         if (Gdx.input.isKeyJustPressed(Input.Keys.F9)) {
-            instantKill = !instantKill;
-            showMessage("Instant Kill: " + (instantKill ? "ON" : "OFF"));
+            aimbot = !aimbot;
+            showMessage("Aimbot: " + (aimbot ? "ON" : "OFF"));
         }
         
         if (Gdx.input.isKeyJustPressed(Input.Keys.F10)) {
@@ -131,67 +189,122 @@ public class CheatSystem {
             showMessage("Fast Reload: " + (fastReload ? "ON" : "OFF"));
         }
         
-        if (Gdx.input.isKeyJustPressed(Input.Keys.F11)) {
-            teleporter = !teleporter;
-            showMessage("Teleporter: " + (teleporter ? "ON" : "OFF"));
+        // Number keys for quick settings (adjusted for removed cheats)
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
+            speedMultiplier = speedMultiplier == 1.0f ? 2.0f : 1.0f;
+            showMessage("Speed Multiplier: " + speedMultiplier);
         }
         
-        if (Gdx.input.isKeyJustPressed(Input.Keys.F12)) {
-            noGravity = !noGravity;
-            showMessage("No Gravity: " + (noGravity ? "ON" : "OFF"));
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) {
+            jumpMultiplier = jumpMultiplier == 1.0f ? 2.0f : 1.0f;
+            showMessage("Jump Multiplier: " + jumpMultiplier);
         }
         
-        // Number keys for quick settings
-        for (int i = 0; i < NUM_KEYS.length && i < cheatStates.length; i++) {
-            if (Gdx.input.isKeyJustPressed(NUM_KEYS[i])) {
-                switch (i) {
-                    case 0: // Num 1 - Speed settings
-                        speedMultiplier = speedMultiplier == 1.0f ? 2.0f : 1.0f;
-                        showMessage("Speed Multiplier: " + speedMultiplier);
-                        break;
-                    case 1: // Num 2 - Jump settings
-                        jumpMultiplier = jumpMultiplier == 1.0f ? 2.0f : 1.0f;
-                        showMessage("Jump Multiplier: " + jumpMultiplier);
-                        break;
-                    case 2: // Num 3 - Teleport
-                        if (teleporter) {
-                            teleportPlayer(player);
-                        }
-                        break;
-                    case 3: // Num 4 - Heal
-                        if (player.health > 0 && !infiniteHealth) {
-                            player.heal(player.maxHealth);
-                            showMessage("Player Healed");
-                        }
-                        break;
-                    case 4: // Num 5 - All weapons
-                        giveAllWeapons(player);
-                        showMessage("All Weapons Given");
-                        break;
-                    case 5: // Num 6 - Max ammo
-                        maxAllAmmo(player);
-                        showMessage("All Ammo Maxed");
-                        break;
-                    case 6: // Num 7 - Toggle wallhack
-                        wallHack = !wallHack;
-                        showMessage("Wall Hack: " + (wallHack ? "ON" : "OFF"));
-                        break;
-                    case 7: // Num 8 - Reset all cheats
-                        resetAllCheats();
-                        showMessage("All Cheats Reset");
-                        break;
-                    case 8: // Num 9 - Kill all enemies
-                        if (instantKill) {
-                            killAllEnemies(player.world);
-                            showMessage("All Enemies Eliminated");
-                        }
-                        break;
-                    case 9: // Num 0 - Demo mode
-                        enableDemoMode(player);
-                        showMessage("Demo Mode Enabled");
-                        break;
-                }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) {
+            if (teleporter) {
+                teleportPlayer(player);
             }
+        }
+        
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_4)) {
+            if (player.health > 0 && !infiniteHealth) {
+                player.heal(player.maxHealth);
+                showMessage("Player Healed");
+            }
+        }
+        
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_5)) {
+            giveAllWeapons(player);
+            showMessage("All Weapons Given");
+        }
+        
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_6)) {
+            maxAllAmmo(player);
+            showMessage("All Ammo Maxed");
+        }
+        
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_7)) {
+            wallHack = !wallHack;
+            showMessage("Wall Hack: " + (wallHack ? "ON" : "OFF"));
+        }
+        
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_8)) {
+            resetAllCheats();
+            showMessage("All Cheats Reset");
+        }
+        
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_9)) {
+            // Kill nearest enemy (requires aimbot)
+            if (aimbot) {
+                killNearestEnemy(player);
+            }
+        }
+        
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {
+            enableDemoMode(player);
+            showMessage("Demo Mode Enabled");
+        }
+    }
+    
+    /**
+     * Update aimbot functionality
+     */
+    private static void updateAimbot(Player player, float delta) {
+        if (!aimbot || player.activeWeapon == null) return;
+        
+        lastAimbotTime += delta;
+        
+        // Find closest enemy
+        GameEntity closestEnemy = findClosestEnemy(player);
+        if (closestEnemy == null) return;
+        
+        currentTarget = closestEnemy;
+        
+        // Calculate aim direction
+        Vector3 playerPos = player.hitBox.position;
+        Vector3 targetPos = closestEnemy.hitBox.position;
+        Vector3 direction = targetPos.cpy().sub(playerPos).nor();
+        
+        // Apply smoothing
+        float smoothingFactor = Math.min(1f, aimbotSmoothness * delta * 60f);
+        Vector3 currentForward = player.forward.cpy();
+        currentForward.lerp(direction, smoothingFactor);
+        player.forward.set(currentForward.nor());
+        
+        // Auto-fire if in range and cooldown passed
+        float distance = playerPos.dst(targetPos);
+        if (distance <= aimbotRange && lastAimbotTime >= AIMBOT_COOLDOWN) {
+            player.firing1 = true;
+            lastAimbotTime = 0f;
+        } else {
+            player.firing1 = false;
+        }
+    }
+    
+    /**
+     * Find the closest enemy to the player
+     */
+    private static GameEntity findClosestEnemy(Player player) {
+        GameEntity closest = null;
+        float closestDistance = Float.MAX_VALUE;
+        
+        Vector3 playerPos = player.hitBox.position;
+        
+        // This would need access to the world's entity list
+        // For now, return a placeholder - this would need integration with the game's entity system
+        // Implementation depends on how entities are stored in GameWorld
+        
+        return closest;
+    }
+    
+    /**
+     * Kill nearest enemy (requires aimbot enabled)
+     */
+    private static void killNearestEnemy(Player player) {
+        GameEntity target = findClosestEnemy(player);
+        if (target != null && !target.dead) {
+            target.takeDamage(target.health + 100f, null, null); // Overkill to ensure death
+            showMessage("Nearest enemy eliminated");
         }
     }
     
@@ -218,11 +331,6 @@ public class CheatSystem {
             player.jumpVelocity = 6f;
         }
         
-        // No gravity
-        if (noGravity && player.hitBox.onGround) {
-            player.jump(15f); // Force jump when on ground
-        }
-        
         // Weapon modifications
         if (player.activeWeapon instanceof Firearm) {
             Firearm firearm = (Firearm) player.activeWeapon;
@@ -230,8 +338,6 @@ public class CheatSystem {
             // Unlimited ammo
             if (unlimitedAmmo) {
                 firearm.ammoInClip = firearm.maxAmmoInClip;
-                // Optionally also give unlimited reserve ammo
-                // firearm.ammoInClip = Integer.MAX_VALUE;
             }
             
             // Fast reload
@@ -257,12 +363,12 @@ public class CheatSystem {
      */
     private static void toggleCheatsEnabled() {
         boolean anyActive = godMode || unlimitedAmmo || speedHack || noRecoil || 
-                           instantKill || fastReload || teleporter || noGravity;
+                           aimbot || fastReload || teleporter;
         
         if (anyActive) {
             // Turn all cheats off
-            godMode = unlimitedAmmo = speedHack = noRecoil = instantKill = 
-                     fastReload = teleporter = noGravity = wallHack = false;
+            godMode = unlimitedAmmo = speedHack = noRecoil = 
+                     aimbot = fastReload = teleporter = wallHack = false;
             speedMultiplier = jumpMultiplier = 1.0f;
             showMessage("All Cheats Disabled");
         } else {
@@ -307,19 +413,11 @@ public class CheatSystem {
     }
     
     /**
-     * Kill all enemies in the world
-     */
-    private static void killAllEnemies(io.github.necrashter.natural_revenge.world.GameWorld world) {
-        // This would need access to enemy lists/arrays in the world
-        // Implementation would depend on how enemies are stored
-    }
-    
-    /**
      * Enable demo mode (all cheats on)
      */
     private static void enableDemoMode(Player player) {
         godMode = unlimitedAmmo = speedHack = noRecoil = fastReload = 
-                 instantKill = teleporter = noGravity = wallHack = true;
+                 aimbot = teleporter = wallHack = true;
         speedMultiplier = 3.0f;
         jumpMultiplier = 2.0f;
         showMessage("Demo Mode: All cheats enabled with extreme settings!");
@@ -330,9 +428,10 @@ public class CheatSystem {
      */
     private static void resetAllCheats() {
         godMode = unlimitedAmmo = infiniteHealth = speedHack = noRecoil = 
-                 fastReload = instantKill = teleporter = noGravity = wallHack = false;
+                 fastReload = aimbot = teleporter = wallHack = false;
         speedMultiplier = jumpMultiplier = 1.0f;
         currentTeleportIndex = 0;
+        currentTarget = null;
     }
     
     /**
@@ -351,16 +450,15 @@ public class CheatSystem {
         System.out.println("F2 - Toggle Debug Mode");
         System.out.println("F3 - Toggle All Cheats");
         System.out.println("F4 - Show This Help");
+        System.out.println("F11 - Show/Hide Cheat Menu");
         System.out.println();
         System.out.println("CHEAT TOGGLES:");
         System.out.println("F5 - God Mode (Infinite Health)");
         System.out.println("F6 - Unlimited Ammo");
         System.out.println("F7 - Speed Hack");
         System.out.println("F8 - No Recoil");
-        System.out.println("F9 - Instant Kill");
+        System.out.println("F9 - Aimbot (Auto-aim and fire)");
         System.out.println("F10 - Fast Reload");
-        System.out.println("F11 - Teleporter");
-        System.out.println("F12 - No Gravity");
         System.out.println();
         System.out.println("QUICK ACTIONS:");
         System.out.println("Num 1 - Toggle Speed Multiplier (1x/2x)");
@@ -371,9 +469,13 @@ public class CheatSystem {
         System.out.println("Num 6 - Max All Ammo");
         System.out.println("Num 7 - Toggle Wall Hack");
         System.out.println("Num 8 - Reset All Cheats");
-        System.out.println("Num 9 - Kill All Enemies*");
+        System.out.println("Num 9 - Kill Nearest Enemy (requires Aimbot)");
         System.out.println("Num 0 - Demo Mode (All cheats max)");
-        System.out.println("*Requires Instant Kill enabled");
+        System.out.println();
+        System.out.println("MENU CONTROLS (F11 to show menu):");
+        System.out.println("UP/DOWN - Navigate menu");
+        System.out.println("ENTER/SPACE - Toggle selected cheat");
+        System.out.println("ESC - Close menu");
         System.out.println("============================\n");
     }
     
@@ -389,10 +491,56 @@ public class CheatSystem {
         sb.append("Speed Hack: ").append(speedHack ? "ON" : "OFF").append("\n");
         sb.append("Speed Multiplier: ").append(speedMultiplier).append("x\n");
         sb.append("No Recoil: ").append(noRecoil ? "ON" : "OFF").append("\n");
-        sb.append("Instant Kill: ").append(instantKill ? "ON" : "OFF").append("\n");
+        sb.append("Aimbot: ").append(aimbot ? "ON" : "OFF").append("\n");
+        sb.append("Fast Reload: ").append(fastReload ? "ON" : "OFF").append("\n");
         sb.append("Teleporter: ").append(teleporter ? "ON" : "OFF").append("\n");
-        sb.append("No Gravity: ").append(noGravity ? "ON" : "OFF").append("\n");
+        sb.append("Wall Hack: ").append(wallHack ? "ON" : "OFF").append("\n");
         sb.append("===================");
+        return sb.toString();
+    }
+    
+    /**
+     * Get menu items for display
+     */
+    public static String[] getMenuItems() {
+        return menuItems.clone();
+    }
+    
+    /**
+     * Get current menu selection
+     */
+    public static int getSelectedMenuItem() {
+        return selectedMenuItem;
+    }
+    
+    /**
+     * Get cheat states for menu display
+     */
+    public static boolean[] getCheatStates() {
+        return new boolean[] {
+            godMode, unlimitedAmmo, speedHack,
+            noRecoil, fastReload, aimbot, teleporter,
+            wallHack
+        };
+    }
+    
+    /**
+     * Render the cheat menu (for UI integration)
+     */
+    public static String renderMenu() {
+        if (!showCheatMenu) return "";
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== FROGUE CHEAT MENU ===\n\n");
+        
+        boolean[] states = getCheatStates();
+        for (int i = 0; i < menuItems.length; i++) {
+            String status = states[i] ? " [ON]" : " [OFF]";
+            String arrow = (i == selectedMenuItem) ? ">> " : "   ";
+            sb.append(arrow).append(menuItems[i]).append(status).append("\n");
+        }
+        
+        sb.append("\nNavigation: UP/DOWN | Toggle: ENTER/SPACE | Close: ESC");
         return sb.toString();
     }
 }

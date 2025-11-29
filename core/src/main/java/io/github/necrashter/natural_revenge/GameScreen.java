@@ -49,6 +49,7 @@ public class GameScreen implements Screen {
     private final Label topRightLabel;
     private final Table topRightTable;
     private final Label bottomLabel;
+    private final Label cheatMenuLabel;
 
     private final WidgetGroup subtitleGroup;
     private final Label subtitleLabel;
@@ -107,6 +108,14 @@ public class GameScreen implements Screen {
             labelContainer1.setFillParent(true);
             labelContainer1.center().padTop(200f);
             hudGroup.addActor(labelContainer1);
+
+            // Cheat menu label
+            cheatMenuLabel = new Label("", Main.skin);
+            cheatMenuLabel.setAlignment(Align.left);
+            Container<Label> cheatMenuContainer = new Container<>(cheatMenuLabel);
+            cheatMenuContainer.setFillParent(true);
+            cheatMenuContainer.left().pad(20);
+            hudGroup.addActor(cheatMenuContainer);
 
             Texture crosshairTexture = Main.assets.get("crosshair010.png");
             Image crosshairImage = new Image(crosshairTexture);
@@ -457,6 +466,13 @@ public class GameScreen implements Screen {
             stringBuilder = new StringBuilder();
             world.player.buildWeaponText(stringBuilder);
             topRightLabel.setText(stringBuilder);
+        }
+
+        // Update cheat menu display
+        if (CheatSystem.showCheatMenu) {
+            cheatMenuLabel.setText(CheatSystem.renderMenu());
+        } else {
+            cheatMenuLabel.setText("");
         }
     }
 
