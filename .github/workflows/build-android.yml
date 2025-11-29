@@ -75,7 +75,20 @@ jobs:
         # Add signing config to build.gradle
         ./gradlew clean android:assembleRelease
         
-        ls -la android/build/outputs/apk/release/
+        # Debug output to see where APK files are created
+        echo "=== Release APK Build Complete ==="
+        echo "Checking for APK files in various locations..."
+        echo "Android build directory:"
+        ls -la android/build/outputs/apk/release/ || echo "No release directory found"
+        
+        echo "Android build directory (debug):"
+        ls -la android/build/outputs/apk/debug/ || echo "No debug directory found"
+        
+        echo "Root directory APK files:"
+        find . -maxdepth 1 -name "*.apk" -type f
+        
+        echo "All APK files in build directory:"
+        find android/build -name "*.apk" -type f 2>/dev/null || echo "No APK files in build directory"
       shell: bash
       env:
         RELEASE_KEYSTORE_PASSWORD: android123
@@ -95,22 +108,46 @@ jobs:
         # Check if the expected files exist
         echo "=== Checking for expected APK files ==="
         find android/build -name "*.apk" -type f | head -10
+        echo "=== Checking for APK files in root directory ==="
+        find . -maxdepth 2 -name "*.apk" -type f | head -10
         
-        # Verify expected APK files exist before copying
+        # Find and copy debug APK
         if [ -f "android/build/outputs/apk/debug/app-debug.apk" ]; then
           echo "✅ Debug APK found: android/build/outputs/apk/debug/app-debug.apk"
           cp android/build/outputs/apk/debug/app-debug.apk release-assets/frogue-mobile-cheats-debug.apk
         else
-          echo "❌ Debug APK not found at expected location"
-          find android/build -name "*debug*.apk" -type f
+          echo "❌ Debug APK not found at expected location, searching..."
+          DEBUG_APK=$(find android/build -name "*debug*.apk" -type f | head -1)
+          if [ ! -z "$DEBUG_APK" ]; then
+            echo "✅ Found debug APK: $DEBUG_APK"
+            cp "$DEBUG_APK" release-assets/frogue-mobile-cheats-debug.apk
+          else
+            echo "❌ No debug APK found anywhere"
+          fi
         fi
         
+        # Find and copy release APK
         if [ -f "android/build/outputs/apk/release/app-release-unsigned.apk" ]; then
           echo "✅ Release APK found: android/build/outputs/apk/release/app-release-unsigned.apk"
           cp android/build/outputs/apk/release/app-release-unsigned.apk release-assets/frogue-mobile-cheats-release-unsigned.apk
+        elif [ -f "android/build/outputs/apk/release/app-release.apk" ]; then
+          echo "✅ Release APK found: android/build/outputs/apk/release/app-release.apk"
+          cp android/build/outputs/apk/release/app-release.apk release-assets/frogue-mobile-cheats-release.apk
         else
-          echo "❌ Release APK not found at expected location"
-          find android/build -name "*release*.apk" -type f
+          echo "❌ Release APK not found at expected location, searching..."
+          RELEASE_APK=$(find android/build -name "*release*.apk" -type f | head -1)
+          if [ ! -z "$RELEASE_APK" ]; then
+            echo "✅ Found release APK: $RELEASE_APK"
+            cp "$RELEASE_APK" release-assets/frogue-mobile-cheats-release-unsigned.apk
+          else
+            # Check root directory for android-release-unsigned.apk
+            if [ -f "android-release-unsigned.apk" ]; then
+              echo "✅ Found release APK in root: android-release-unsigned.apk"
+              cp android-release-unsigned.apk release-assets/frogue-mobile-cheats-release-unsigned.apk
+            else
+              echo "❌ No release APK found anywhere"
+            fi
+          fi
         fi
         
         # Create release info
@@ -172,14 +209,14 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: frogue-debug-apk
-        path: android/build/outputs/apk/debug/*.apk
+        path: release-assets/frogue-mobile-cheats-debug.apk
         retention-days: 30
     
     - name: Upload Release APK (Unsigned) Artifact
       uses: actions/upload-artifact@v4
       with:
         name: frogue-release-apk-unsigned
-        path: android/build/outputs/apk/release/*.apk
+        path: release-assets/frogue-mobile-cheats-release-unsigned.apk
         retention-days: 90
     
     - name: Upload Release Assets
@@ -218,9 +255,10 @@ jobs:
           - All traditional cheats via touch UI
           - Battery-optimized operations
         files: |
-          android/build/outputs/apk/debug/*.apk
-          android/build/outputs/apk/release/*.apk
+          release-assets/frogue-mobile-cheats-debug.apk
+          release-assets/frogue-mobile-cheats-release-unsigned.apk
           release-assets/BUILD_INFO.md
+        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
