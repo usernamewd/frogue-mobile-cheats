@@ -44,13 +44,15 @@ jobs:
     - name: Build Debug APK
       run: |
         ./gradlew clean android:assembleDebug
-        ls -la android/build/outputs/apk/debug/
+        echo "Debug APK build completed"
+        ls -la android/build/outputs/apk/debug/ || echo "Debug APK directory not found"
       shell: bash
     
     - name: Build Release APK (Unsigned)
       run: |
         ./gradlew clean android:assembleRelease
-        ls -la android/build/outputs/apk/release/
+        echo "Release APK build completed"
+        ls -la android/build/outputs/apk/release/ || echo "Release APK directory not found"
       shell: bash
     
     - name: Build Release APK (Signed)
@@ -82,11 +84,34 @@ jobs:
     - name: Create Release Assets
       run: |
         mkdir -p release-assets
-        cp android/build/outputs/apk/debug/android-debug.apk release-assets/frogue-mobile-cheats-debug.apk
-        cp android/build/outputs/apk/release/android-release-unsigned.apk release-assets/frogue-mobile-cheats-release-unsigned.apk
         
-        # Get APK sizes
-        ls -lh android/build/outputs/apk/debug/ android/build/outputs/apk/release/
+        # Get APK sizes and list available files
+        echo "=== Debug APK Directory Contents ==="
+        ls -la android/build/outputs/apk/debug/ || echo "No debug APK directory found"
+        
+        echo "=== Release APK Directory Contents ==="
+        ls -la android/build/outputs/apk/release/ || echo "No release APK directory found"
+        
+        # Check if the expected files exist
+        echo "=== Checking for expected APK files ==="
+        find android/build -name "*.apk" -type f | head -10
+        
+        # Verify expected APK files exist before copying
+        if [ -f "android/build/outputs/apk/debug/app-debug.apk" ]; then
+          echo "✅ Debug APK found: android/build/outputs/apk/debug/app-debug.apk"
+          cp android/build/outputs/apk/debug/app-debug.apk release-assets/frogue-mobile-cheats-debug.apk
+        else
+          echo "❌ Debug APK not found at expected location"
+          find android/build -name "*debug*.apk" -type f
+        fi
+        
+        if [ -f "android/build/outputs/apk/release/app-release-unsigned.apk" ]; then
+          echo "✅ Release APK found: android/build/outputs/apk/release/app-release-unsigned.apk"
+          cp android/build/outputs/apk/release/app-release-unsigned.apk release-assets/frogue-mobile-cheats-release-unsigned.apk
+        else
+          echo "❌ Release APK not found at expected location"
+          find android/build -name "*release*.apk" -type f
+        fi
         
         # Create release info
         cat > release-assets/BUILD_INFO.md << EOF
