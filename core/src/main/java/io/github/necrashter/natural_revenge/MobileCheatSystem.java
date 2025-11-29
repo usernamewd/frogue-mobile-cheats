@@ -173,8 +173,10 @@ public class MobileCheatSystem {
         cheatScrollPane.setSize(Gdx.graphics.getWidth() * 0.7f, Gdx.graphics.getHeight() * 0.4f);
         
         // Close button
-        TextButton closeButton = new TextButton("Close", new TextButton.TextButtonStyle());
-        closeButton.getStyle().fontScale = 1.5f;
+        TextButton.TextButtonStyle closeButtonStyle = new TextButton.TextButtonStyle();
+        closeButtonStyle.font = Main.skin.getFont("default");
+        closeButtonStyle.font.getData().setScale(1.5f);
+        TextButton closeButton = new TextButton("Close", closeButtonStyle);
         closeButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -280,24 +282,27 @@ public class MobileCheatSystem {
         
         if (target != null) {
             // Smooth aim towards target
-            Vector3 playerPos = player.getPosition();
-            Vector3 targetPos = target.getPosition();
+            Vector3 playerPos = new Vector3();
+            player.getPosition(playerPos);
+            Vector3 targetPos = new Vector3();
+            target.getPosition(targetPos);
             
             Vector3 direction = targetPos.sub(playerPos).nor();
-            Vector3 currentAim = player.getLookDirection();
+            Vector3 currentAim = player.forward;
             
             // Smooth interpolation for mobile
             float lerpFactor = Math.min(delta * (1f / mobileAimbotSmoothness), 1f);
             Vector3 newAim = currentAim.lerp(direction, lerpFactor);
             
-            player.setLookDirection(newAim);
+            // Update player's forward direction (this affects camera direction in update)
+            player.forward.set(newAim);
             currentMobileTarget = target;
             
             // Auto-fire if target is close enough
             float distance = playerPos.dst(targetPos);
             if (distance < mobileAimbotRange * 0.5f) {
                 // Trigger auto-fire (this would integrate with weapon system)
-                Gdx.app.log("MobileAimbot", "Auto-firing at target: " + target.getName());
+                Gdx.app.log("MobileAimbot", "Auto-firing at target");
             }
         } else {
             currentMobileTarget = null;
@@ -423,7 +428,7 @@ public class MobileCheatSystem {
     /**
      * Toggle auto aimbot mode
      */
-    private static void toggleAutoAimbot() {
+    public static void toggleAutoAimbot() {
         autoAimbot = !autoAimbot;
         if (autoAimbot) {
             aimbot = true;

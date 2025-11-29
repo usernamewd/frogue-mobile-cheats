@@ -230,10 +230,16 @@ public class GameScreen implements Screen {
                 pauseDialog.getButtonTable().add(button).height(button.getHeight()).width(button.getWidth()).row();
             }
         }
-        Gdx.input.setInputProcessor(new InputMultiplexer(
-                stage, world.player.inputAdapter, 
-                Main.isMobile() ? createMobileCheatInputListener() : null
-        ));
+        if (Main.isMobile()) {
+            Gdx.input.setInputProcessor(new InputMultiplexer(
+                    stage, world.player.inputAdapter, 
+                    createMobileCheatInputProcessor()
+            ));
+        } else {
+            Gdx.input.setInputProcessor(new InputMultiplexer(
+                    stage, world.player.inputAdapter
+            ));
+        }
         if (Main.isMobile()) {
             movementTouch = new TouchPad(Main.skin);
             float touchpadSize = 240f;
@@ -928,19 +934,19 @@ public class GameScreen implements Screen {
     }
     
     /**
-     * Create mobile cheat system input listener for gesture handling
+     * Create mobile cheat system input processor for gesture handling
      */
-    private InputListener createMobileCheatInputListener() {
-        return new InputListener() {
+    private InputProcessor createMobileCheatInputProcessor() {
+        return new InputAdapter() {
             @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+            public boolean touchDown(int x, int y, int pointer, int button) {
                 // Handle mobile cheat gestures
                 MobileCheatSystem.handleTouch(x, y, pointer, button);
                 return false; // Allow normal processing
             }
             
             @Override
-            public boolean keyDown(InputEvent event, int keycode) {
+            public boolean keyDown(int keycode) {
                 // Handle mobile cheat shortcuts (limited set for mobile)
                 switch (keycode) {
                     case Input.Keys.F11: // Menu toggle
