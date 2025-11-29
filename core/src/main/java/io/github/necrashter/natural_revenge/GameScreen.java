@@ -231,7 +231,8 @@ public class GameScreen implements Screen {
             }
         }
         Gdx.input.setInputProcessor(new InputMultiplexer(
-                stage, world.player.inputAdapter
+                stage, world.player.inputAdapter, 
+                Main.isMobile() ? createMobileCheatInputListener() : null
         ));
         if (Main.isMobile()) {
             movementTouch = new TouchPad(Main.skin);
@@ -428,8 +429,13 @@ public class GameScreen implements Screen {
         }
         world.update(delta);
 
-        // Update cheat system
+        // Update cheat systems
         CheatSystem.update(delta, world.player);
+        
+        // Update mobile cheat system if on mobile
+        if (Main.isMobile()) {
+            MobileCheatSystem.update(delta, world.player);
+        }
 
         bottomLabel.setText(world.player.getHoverInfo());
         stage.act(delta);
@@ -444,6 +450,11 @@ public class GameScreen implements Screen {
 
         stage.getViewport().apply();
         stage.draw();
+        
+        // Render mobile cheat UI if on mobile and visible
+        if (Main.isMobile() && MobileCheatSystem.getUiStage() != null) {
+            // MobileCheatSystem.render() will be called by the stage automatically
+        }
 
         StringBuilder stringBuilder = new StringBuilder();
         world.buildHudText(stringBuilder);
@@ -524,7 +535,11 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
-
+        // Initialize mobile cheat system if on mobile device
+        if (Main.isMobile()) {
+            MobileCheatSystem.initializeMobile(stage);
+            Gdx.app.log("GameScreen", "Mobile cheat system initialized");
+        }
     }
 
     @Override
@@ -537,6 +552,11 @@ public class GameScreen implements Screen {
         // World renderer is supposed to dispose world as well.
         worldRenderer.dispose();
         stage.dispose();
+        
+        // Dispose mobile cheat system if initialized
+        if (Main.isMobile()) {
+            MobileCheatSystem.dispose();
+        }
     }
 
     public void playerDied() {
@@ -905,5 +925,34 @@ public class GameScreen implements Screen {
         } else {
             return "Unknown Weapon";
         }
+    }
+    
+    /**
+     * Create mobile cheat system input listener for gesture handling
+     */
+    private InputListener createMobileCheatInputListener() {
+        return new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                // Handle mobile cheat gestures
+                MobileCheatSystem.handleTouch(x, y, pointer, button);
+                return false; // Allow normal processing
+            }
+            
+            @Override
+            public boolean keyDown(InputEvent event, int keycode) {
+                // Handle mobile cheat shortcuts (limited set for mobile)
+                switch (keycode) {
+                    case Input.Keys.F11: // Menu toggle
+                        MobileCheatSystem.toggleMobileMenu();
+                        return true;
+                    case Input.Keys.F9:  // Aimbot toggle
+                        MobileCheatSystem.toggleAutoAimbot();
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        };
     }
 }
