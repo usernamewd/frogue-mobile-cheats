@@ -419,6 +419,9 @@ public class GameScreen implements Screen {
         }
         world.update(delta);
 
+        // Update cheat system
+        CheatSystem.update(delta, world.player);
+
         bottomLabel.setText(world.player.getHoverInfo());
         stage.act(delta);
 

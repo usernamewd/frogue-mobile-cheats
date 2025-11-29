@@ -82,6 +82,10 @@ public class Main extends Game {
         assets = new AssetManager2();
         music = new MusicManager();
         randomRoller = new RandomRoller();
+        
+        // Initialize cheat system
+        CheatSystem.initialize();
+        
         loadPreferences();
         if (Main.isMobile()) {
             uiScale = MathUtils.clamp(((Gdx.graphics.getDensity() / .5783681f) - 1.0f) / 2f + 1f, .5f, 2f);
