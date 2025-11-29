@@ -117,17 +117,6 @@ public class Main extends Game {
         float delta = Gdx.graphics.getDeltaTime();
         music.update(delta);
         
-        // FPS limiting for low-end devices
-        if (isLowEndDevice && targetFPS > 0) {
-            long targetFrameTime = 1000 / targetFPS; // milliseconds
-            long currentTime = System.currentTimeMillis();
-            
-            if (currentTime - lastFrameTime < targetFrameTime) {
-                return; // Skip this frame to maintain target FPS
-            }
-            lastFrameTime = currentTime;
-        }
-        
         if (screen != null) screen.render(delta);
     }
 
@@ -209,8 +198,9 @@ public class Main extends Game {
         boolean limitedMemory = java.lang.Runtime.getRuntime().maxMemory() < 128 * 1024 * 1024; // < 128MB
         boolean smallScreen = Gdx.graphics.getWidth() < 1000;
         
-        // Consider low-end if it matches patterns or has multiple limiting factors
-        isLowEndDevice = isLowEndPattern || (limitedMemory && smallScreen);
+        // Only consider extremely limited memory devices as low-end
+        long maxMemory = Runtime.getRuntime().maxMemory() / (1024 * 1024);
+        isLowEndDevice = maxMemory <= 256; // Only truly low-memory devices
         
         Gdx.app.log("Frogue", "Low-end device detected: " + isLowEndDevice);
         if (isLowEndDevice) {
@@ -242,26 +232,15 @@ public class Main extends Game {
         }
         
         if (isHuaweiMatePadT) {
-            // Specific optimizations for Huawei MatePad T
-            targetFPS = 30; // Reduce to 30 FPS for better stability
-            renderScale = 0.8f; // Reduce rendering resolution by 20%
-            useLowQuality = true;
+            // Minimal optimizations - only essential ones
+            useLowQuality = true; // Only this optimization - reduces texture quality
             
-            // Force garbage collection more frequently
-            Gdx.app.postRunnable(new Runnable() {
-                @Override
-                public void run() {
-                    System.gc();
-                }
-            });
-            
-            Gdx.app.log("Frogue", "Applied Huawei MatePad T optimizations - 30 FPS, 0.8x render scale");
+            Gdx.app.log("Frogue", "Applied minimal Huawei MatePad T optimizations - texture quality reduction only");
         } else {
-            // General low-end optimizations
-            targetFPS = 45;
-            renderScale = 0.9f;
-            useLowQuality = true;
-            Gdx.app.log("Frogue", "Applied general low-end optimizations - 45 FPS, 0.9x render scale");
+            // Keep default settings for other devices
+            renderScale = 1.0f;
+            targetFPS = 60;
+            useLowQuality = false;
         }
     }
 }
