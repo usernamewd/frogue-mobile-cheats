@@ -105,51 +105,6 @@ jobs:
         # Look for APK files in common locations and copy them
         APK_COUNT=0
         
-<<<<<<< HEAD
-        # Check if the expected files exist
-        echo "=== Checking for expected APK files ==="
-        find android/build -name "*.apk" -type f | head -10
-        echo "=== Checking for APK files in root directory ==="
-        find . -maxdepth 2 -name "*.apk" -type f | head -10
-        
-        # Find and copy debug APK
-        if [ -f "android/build/outputs/apk/debug/app-debug.apk" ]; then
-          echo "✅ Debug APK found: android/build/outputs/apk/debug/app-debug.apk"
-          cp android/build/outputs/apk/debug/app-debug.apk release-assets/frogue-mobile-cheats-debug.apk
-        else
-          echo "❌ Debug APK not found at expected location, searching..."
-          DEBUG_APK=$(find android/build -name "*debug*.apk" -type f | head -1)
-          if [ ! -z "$DEBUG_APK" ]; then
-            echo "✅ Found debug APK: $DEBUG_APK"
-            cp "$DEBUG_APK" release-assets/frogue-mobile-cheats-debug.apk
-          else
-            echo "❌ No debug APK found anywhere"
-          fi
-        fi
-        
-        # Find and copy release APK
-        if [ -f "android/build/outputs/apk/release/app-release-unsigned.apk" ]; then
-          echo "✅ Release APK found: android/build/outputs/apk/release/app-release-unsigned.apk"
-          cp android/build/outputs/apk/release/app-release-unsigned.apk release-assets/frogue-mobile-cheats-release-unsigned.apk
-        elif [ -f "android/build/outputs/apk/release/app-release.apk" ]; then
-          echo "✅ Release APK found: android/build/outputs/apk/release/app-release.apk"
-          cp android/build/outputs/apk/release/app-release.apk release-assets/frogue-mobile-cheats-release.apk
-        else
-          echo "❌ Release APK not found at expected location, searching..."
-          RELEASE_APK=$(find android/build -name "*release*.apk" -type f | head -1)
-          if [ ! -z "$RELEASE_APK" ]; then
-            echo "✅ Found release APK: $RELEASE_APK"
-            cp "$RELEASE_APK" release-assets/frogue-mobile-cheats-release-unsigned.apk
-          else
-            # Check root directory for android-release-unsigned.apk
-            if [ -f "android-release-unsigned.apk" ]; then
-              echo "✅ Found release APK in root: android-release-unsigned.apk"
-              cp android-release-unsigned.apk release-assets/frogue-mobile-cheats-release-unsigned.apk
-            else
-              echo "❌ No release APK found anywhere"
-            fi
-          fi
-=======
         # Try to find and copy debug APK
         DEBUG_APK=$(find . -name "*debug.apk" -type f | head -1)
         if [ -n "$DEBUG_APK" ]; then
@@ -168,7 +123,6 @@ jobs:
           APK_COUNT=$((APK_COUNT + 1))
         else
           echo "⚠️ Release APK not found"
->>>>>>> 555d48a (Fix GitHub Actions workflow for Android build:)
         fi
         
         echo "Found $APK_COUNT APK files"
@@ -228,89 +182,21 @@ jobs:
         ls -la release-assets/
       shell: bash
     
-<<<<<<< HEAD
-    - name: Upload Debug APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: frogue-debug-apk
-        path: release-assets/frogue-mobile-cheats-debug.apk
-        retention-days: 30
-=======
-    - name: Upload APK Artifacts
-      run: |
-        # Upload all found APK files as artifacts
-        find . -name "*.apk" -type f | while read apk; do
-          echo "Uploading artifact: $apk"
-          # This will be handled by the generic artifact upload below
-        done
-        
-        # List all APK files for verification
-        echo "All APK files found:"
-        find . -name "*.apk" -type f
->>>>>>> 555d48a (Fix GitHub Actions workflow for Android build:)
-    
     - name: Upload APK Artifacts
       uses: actions/upload-artifact@v4
       with:
-<<<<<<< HEAD
-        name: frogue-release-apk-unsigned
-        path: release-assets/frogue-mobile-cheats-release-unsigned.apk
-        retention-days: 90
-    
-    - name: Upload Release Assets
-      uses: actions/upload-artifact@v4
-      with:
-        name: frogue-release-assets
-=======
         name: frogue-apk-artifacts
->>>>>>> 555d48a (Fix GitHub Actions workflow for Android build:)
         path: release-assets/
         retention-days: 90
         if-no-files-found: error
-
+    
     - name: Create Release (Optional)
       if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-<<<<<<< HEAD
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: android-build-${{ github.run_number }}
-        name: Android Build ${{ github.run_number }}
-        body: |
-          Automated Android build for Frogue Mobile Cheats.
-          
-          **Build Information:**
-          - Commit: ${{ github.sha }}
-          - Branch: ${{ github.ref_name }}
-          - Date: $(date)
-          
-          **Available Files:**
-          - Debug APK (ready to install)
-          - Release APK (unsigned, needs signing)
-          - Build information and documentation
-          
-          **Installation:**
-          - Debug APK: Install directly on Android device
-          - Release APK: Sign with keystore before installation
-          
-          **Features:**
-          - Touch-optimized cheat interface
-          - Mobile aimbot with gesture controls
-          - All traditional cheats via touch UI
-          - Battery-optimized operations
-        files: |
-          release-assets/frogue-mobile-cheats-debug.apk
-          release-assets/frogue-mobile-cheats-release-unsigned.apk
-          release-assets/BUILD_INFO.md
-        generate_release_notes: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-=======
       run: |
         # Skip GitHub release creation due to permissions issues
         echo "Skipping GitHub release creation to avoid 403 errors"
         echo "APK artifacts are available in the Actions artifacts section"
         echo "Download release-assets from the build artifacts to get the APK files"
->>>>>>> 555d48a (Fix GitHub Actions workflow for Android build:)
     
     - name: Build Summary
       run: |
