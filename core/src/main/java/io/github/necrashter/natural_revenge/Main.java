@@ -36,6 +36,7 @@ public class Main extends Game {
     public static int targetFPS = 60;
     public static float renderScale = 1.0f;
     public static boolean useLowQuality = false;
+    private long lastFrameTime = 0; // For FPS limiting
 
     public abstract static class PostInit {
         public abstract void run(Main main);
@@ -118,7 +119,6 @@ public class Main extends Game {
         
         // FPS limiting for low-end devices
         if (isLowEndDevice && targetFPS > 0) {
-            static long lastFrameTime = 0;
             long targetFrameTime = 1000 / targetFPS; // milliseconds
             long currentTime = System.currentTimeMillis();
             
