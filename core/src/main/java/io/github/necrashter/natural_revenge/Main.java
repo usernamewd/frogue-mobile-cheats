@@ -170,10 +170,33 @@ public class Main extends Game {
     private void detectLowEndDevice() {
         if (!isMobile()) return;
         
-        // Get device information
-        String manufacturer = android.os.Build.MANUFACTURER.toLowerCase();
-        String model = android.os.Build.MODEL.toLowerCase();
-        String product = android.os.Build.PRODUCT.toLowerCase();
+        // Get device information safely
+        String manufacturer = "unknown";
+        String model = "unknown";
+        String product = "unknown";
+        
+        if (Gdx.app.getType() == com.badlogic.gdx.Application.ApplicationType.Android) {
+            try {
+                Class<?> buildClass = Class.forName("android.os.Build");
+                manufacturer = ((String) buildClass.getField("MANUFACTURER").get(null)).toLowerCase();
+                model = ((String) buildClass.getField("MODEL").get(null)).toLowerCase();
+                product = ((String) buildClass.getField("PRODUCT").get(null)).toLowerCase();
+            } catch (Exception e) {
+                // Safe fallback - use memory-based detection
+                long maxMemory = Runtime.getRuntime().maxMemory() / (1024 * 1024);
+                manufacturer = maxMemory <= 768 ? "huawei" : "unknown";
+                model = maxMemory <= 768 ? "kob2" : "unknown";
+                product = "unknown";
+            }
+        } else {
+            // Desktop fallback - use memory-based detection for low-end identification
+            long maxMemory = Runtime.getRuntime().maxMemory() / (1024 * 1024);
+            if (maxMemory <= 768) {
+                manufacturer = "huawei"; // Assume for low memory devices
+                model = "kob2"; // Assume for testing
+                product = "unknown";
+            }
+        }
         
         // Known low-end device patterns
         boolean isLowEndPattern = manufacturer.contains("huawei") && model.contains("kob2") ||
