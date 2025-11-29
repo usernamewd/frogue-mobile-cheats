@@ -182,13 +182,12 @@ public class Main extends Game {
                                  manufacturer.contains("samsung") && model.contains("a") ||
                                  model.contains("mt6765") || model.contains("mt6739") || model.contains("mt6580");
         
-        // Check if device has limited memory or old Android
+        // Check if device has limited memory or other limiting factors
         boolean limitedMemory = java.lang.Runtime.getRuntime().maxMemory() < 128 * 1024 * 1024; // < 128MB
-        boolean oldAndroid = android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M;
         boolean smallScreen = Gdx.graphics.getWidth() < 1000;
         
         // Consider low-end if it matches patterns or has multiple limiting factors
-        isLowEndDevice = isLowEndPattern || (limitedMemory && (oldAndroid || smallScreen));
+        isLowEndDevice = isLowEndPattern || (limitedMemory && smallScreen);
         
         Gdx.app.log("Frogue", "Low-end device detected: " + isLowEndDevice);
         if (isLowEndDevice) {
@@ -203,7 +202,23 @@ public class Main extends Game {
         if (!isLowEndDevice) return;
         
         // For Huawei MatePad T and similar devices
-        if (android.os.Build.MODEL.toLowerCase().contains("kob2")) {
+        boolean isHuaweiMatePadT = false;
+        if (Gdx.app.getType() == com.badlogic.gdx.Application.ApplicationType.Android) {
+            try {
+                String model = (String) Class.forName("android.os.Build").getField("MODEL").get(null);
+                isHuaweiMatePadT = model.toLowerCase().contains("kob2");
+            } catch (Exception e) {
+                // Safe fallback - use memory-based detection
+                long maxMemory = Runtime.getRuntime().maxMemory() / (1024 * 1024);
+                isHuaweiMatePadT = maxMemory <= 768; // Most Huawei MatePad T devices have ~512MB heap
+            }
+        } else {
+            // Desktop fallback - use memory-based detection
+            long maxMemory = Runtime.getRuntime().maxMemory() / (1024 * 1024);
+            isHuaweiMatePadT = maxMemory <= 768;
+        }
+        
+        if (isHuaweiMatePadT) {
             // Specific optimizations for Huawei MatePad T
             targetFPS = 30; // Reduce to 30 FPS for better stability
             renderScale = 0.8f; // Reduce rendering resolution by 20%
