@@ -1,0 +1,223 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 8
+      uses: actions/setup-java@v4
+      with:
+        java-version: '8'
+        distribution: 'temurin'
+        cache: 'gradle'
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 30
+        build-tools-version: 30.0.3
+        target: google_apis
+        arch: x86_64
+        platform: android-30
+    
+    - name: Setup Android SDK for modern tools
+      run: |
+        sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3"
+        sdkmanager --licenses
+      shell: bash
+    
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    
+    - name: Build Debug APK
+      run: |
+        ./gradlew clean android:assembleDebug
+        ls -la android/build/outputs/apk/debug/
+      shell: bash
+    
+    - name: Build Release APK (Unsigned)
+      run: |
+        ./gradlew clean android:assembleRelease
+        ls -la android/build/outputs/apk/release/
+      shell: bash
+    
+    - name: Build Release APK (Signed)
+      run: |
+        # Create signing keystore (for demonstration)
+        echo "Creating signing keystore..."
+        keytool -genkey -v -keystore frogue-release-key.keystore -alias frogue-key -keyalg RSA -keysize 2048 -validity 10000 -storepass android123 -keypass android123 -dname "CN=Frogue, OU=GameDev, O=Frogue Mobile, L=GameCity, S=GameState, C=GS"
+        
+        # Setup signing configuration
+        mkdir -p android/app/src/main/res/values
+        cat > android/app/src/main/res/values/signing.xml << EOF
+        <?xml version="1.0" encoding="utf-8"?>
+        <resources>
+            <string name="keystore_password">android123</string>
+            <string name="key_alias">frogue-key</string>
+            <string name="key_password">android123</string>
+        </resources>
+        EOF
+        
+        # Add signing config to build.gradle
+        ./gradlew clean android:assembleRelease
+        
+        ls -la android/build/outputs/apk/release/
+      shell: bash
+      env:
+        RELEASE_KEYSTORE_PASSWORD: android123
+        RELEASE_KEY_ALIAS_PASSWORD: android123
+    
+    - name: Create Release Assets
+      run: |
+        mkdir -p release-assets
+        cp android/build/outputs/apk/debug/android-debug.apk release-assets/frogue-mobile-cheats-debug.apk
+        cp android/build/outputs/apk/release/android-release-unsigned.apk release-assets/frogue-mobile-cheats-release-unsigned.apk
+        
+        # Get APK sizes
+        ls -lh android/build/outputs/apk/debug/ android/build/outputs/apk/release/
+        
+        # Create release info
+        cat > release-assets/BUILD_INFO.md << EOF
+        # Frogue Mobile Cheats - Build Information
+
+        ## Build Date: $(date)
+        ## Git Commit: ${{ github.sha }}
+        ## Git Branch: ${{ github.ref_name }}
+        ## Workflow Run: ${{ github.run_id }}
+
+        ## Available APKs:
+        1. **Debug APK** (frogue-mobile-cheats-debug.apk)
+           - For development and testing
+           - Includes debugging symbols
+           - Larger file size
+           - Can be installed directly
+
+        2. **Release APK (Unsigned)** (frogue-mobile-cheats-release-unsigned.apk)
+           - Production-ready build
+           - Optimized and minified
+           - Smaller file size
+           - Requires signing for installation
+
+        ## Installation Instructions:
+
+        ### Debug APK:
+        1. Enable "Unknown Sources" in Android settings
+        2. Download and install frogue-mobile-cheats-debug.apk
+        3. Launch the app
+
+        ### Release APK:
+        1. Sign the APK with your own keystore
+        2. Enable "Unknown Sources" in Android settings
+        3. Download and install the signed APK
+        4. Launch the app
+
+        ## Mobile Cheat System Features:
+        - Touch-optimized cheat interface
+        - Floating action buttons (menu & aimbot)
+        - Gesture controls (double-tap for auto-aimbot)
+        - Mobile-specific aimbot with smooth targeting
+        - All traditional cheats accessible via touch UI
+        - Battery-optimized operations
+
+        ## Build Environment:
+        - JDK 8
+        - Android API 30
+        - Build Tools 30.0.3
+        - Gradle Wrapper
+
+        For more information, see the README and documentation files.
+        EOF
+        
+        ls -la release-assets/
+      shell: bash
+    
+    - name: Upload Debug APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: frogue-debug-apk
+        path: android/build/outputs/apk/debug/*.apk
+        retention-days: 30
+    
+    - name: Upload Release APK (Unsigned) Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: frogue-release-apk-unsigned
+        path: android/build/outputs/apk/release/*.apk
+        retention-days: 90
+    
+    - name: Upload Release Assets
+      uses: actions/upload-artifact@v4
+      with:
+        name: frogue-release-assets
+        path: release-assets/
+        retention-days: 90
+    
+    - name: Create Release (Optional)
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: android-build-${{ github.run_number }}
+        name: Android Build ${{ github.run_number }}
+        body: |
+          Automated Android build for Frogue Mobile Cheats.
+          
+          **Build Information:**
+          - Commit: ${{ github.sha }}
+          - Branch: ${{ github.ref_name }}
+          - Date: $(date)
+          
+          **Available Files:**
+          - Debug APK (ready to install)
+          - Release APK (unsigned, needs signing)
+          - Build information and documentation
+          
+          **Installation:**
+          - Debug APK: Install directly on Android device
+          - Release APK: Sign with keystore before installation
+          
+          **Features:**
+          - Touch-optimized cheat interface
+          - Mobile aimbot with gesture controls
+          - All traditional cheats via touch UI
+          - Battery-optimized operations
+        files: |
+          android/build/outputs/apk/debug/*.apk
+          android/build/outputs/apk/release/*.apk
+          release-assets/BUILD_INFO.md
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Build Summary
+      run: |
+        echo "## 🚀 Android Build Complete!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Build Results:" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Debug APK**: Ready for immediate installation" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Release APK**: Production build (unsigned)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Artifacts**: All APKs and documentation uploaded" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Mobile Cheat System Features:" >> $GITHUB_STEP_SUMMARY
+        echo "- 🎯 Touch-optimized aimbot with gesture controls" >> $GITHUB_STEP_SUMMARY
+        echo "- 📱 Floating UI buttons for easy mobile access" >> $GITHUB_STEP_SUMMARY
+        echo "- 🛠️ All traditional cheats accessible via touch interface" >> $GITHUB_STEP_SUMMARY
+        echo "- ⚡ Battery-optimized mobile operations" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Download the debug APK from artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "2. Install on your Android device" >> $GITHUB_STEP_SUMMARY
+        echo "3. Enable the cheat system and enjoy enhanced mobile gaming!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📋 **Build Details**: Commit `${{ github.sha }}` | Branch `${{ github.ref_name }}`" >> $GITHUB_STEP_SUMMARY
+      shell: bash

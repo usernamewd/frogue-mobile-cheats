@@ -1,0 +1,326 @@
+name: Release Management
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [published]
+
+jobs:
+  create-mobile-release:
+    name: Create Mobile Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 8
+      uses: actions/setup-java@v4
+      with:
+        java-version: '8'
+        distribution: 'temurin'
+        cache: 'gradle'
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    
+    - name: Build Release APKs
+      run: |
+        echo "🔨 Building production APKs for release..."
+        
+        # Clean and build
+        ./gradlew clean
+        
+        # Build debug APK
+        ./gradlew android:assembleDebug
+        
+        # Build release APK
+        ./gradlew android:assembleRelease
+        
+        echo "📦 APK build complete!"
+        ls -la android/build/outputs/apk/*/
+      shell: bash
+    
+    - name: Create Release Notes
+      run: |
+        echo "📝 Creating release notes..."
+        
+        tag_name="${GITHUB_REF#refs/tags/}"
+        
+        cat > RELEASE_NOTES.md << EOF
+        # 🎮 Frogue Mobile Cheats - Release $tag_name
+        
+        **Release Date**: $(date)
+        **Build Commit**: ${{ github.sha }}
+        
+        ## 🚀 What's New in This Release
+        
+        ### ✨ Mobile Features
+        - **Touch-Optimized Interface**: Full touch control support for all cheats
+        - **Floating Action Buttons**: Quick access to menu and aimbot
+        - **Gesture Controls**: Double-tap for auto-aimbot activation
+        - **Mobile Aimbot**: Enhanced mobile targeting with smooth interpolation
+        - **Battery Optimization**: Efficient mobile operations
+        - **UI Adaptability**: Works in both portrait and landscape
+        
+        ### 🎯 Enhanced Aimbot System
+        - **Range**: 150 units (optimized for mobile screens)
+        - **Smoothness**: Enhanced interpolation (0.2f)
+        - **Auto-Fire**: Automatic shooting when target acquired
+        - **Visual Feedback**: Button state indicators
+        - **Gesture Toggle**: Double-tap anywhere to activate
+        
+        ### 🛠️ All Traditional Cheats
+        - **God Mode**: Infinite health and invincibility
+        - **Unlimited Ammo**: Never run out of ammunition
+        - **Speed Hack**: Enhanced movement speed (2x)
+        - **No Recoil**: Perfect weapon accuracy
+        - **Fast Reload**: Rapid weapon reloading
+        - **Teleporter**: Quick location changes
+        - **Wall Hack**: See through walls for strategy
+        
+        ## 📱 Installation Instructions
+        
+        ### Quick Installation (Debug APK)
+        1. Download **frogue-mobile-cheats-debug.apk**
+        2. Enable "Unknown Sources" in Android settings
+        3. Install the APK on your device
+        4. Launch Frogue and enjoy enhanced mobile gaming!
+        
+        ### Production Installation (Release APK)
+        1. Download **frogue-mobile-cheats-release.apk**
+        2. Sign the APK with your own keystore:
+           \`\`\`bash
+           jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 \\
+           -keystore your-keystore.jks frogue-mobile-cheats-release.apk your-alias
+           \`\`\`
+        3. Enable "Unknown Sources" in Android settings
+        4. Install the signed APK
+        5. Launch Frogue and enjoy!
+        
+        ## 🎮 How to Use Mobile Cheats
+        
+        ### Quick Start
+        1. **Open Menu**: Tap the menu button (≡) in bottom-left corner
+        2. **Enable Aimbot**: Tap the aimbot button (🎯) in bottom-right corner
+        3. **Toggle Cheats**: Tap any cheat button in the menu
+        4. **Auto Aimbot**: Double-tap anywhere on screen for instant activation
+        
+        ### Interface Elements
+        - **Floating Menu Button (≡)**: Opens the main cheat menu
+        - **Floating Aimbot Button (🎯)**: Quick aimbot toggle
+        - **Status Bar**: Shows current actions and cheat states
+        - **Menu Overlay**: Semi-transparent cheat selection interface
+        
+        ### Gesture Controls
+        - **Double-Tap Screen**: Toggle auto-aimbot mode
+        - **Single Tap Buttons**: Toggle individual cheats
+        - **Tap Menu Button**: Open/close cheat interface
+        - **Tap Aimbot Button**: Quick aimbot activation
+        
+        ## ⚡ Performance & Battery
+        
+        ### Optimizations
+        - **Delta Time Handling**: Smooth 60fps gameplay
+        - **Efficient Targeting**: Only scans enemies within range
+        - **Memory Management**: Proper UI disposal
+        - **Battery Saver**: Automatic power optimization
+        
+        ### Recommended Settings
+        - **Single Aimbot**: Don't enable multiple targeting cheats
+        - **Close Menu**: Don't leave menu open during active gameplay
+        - **Monitor FPS**: Watch for performance impact
+        - **Device Temperature**: Check for overheating during extended use
+        
+        ## 🛡️ Security & Privacy
+        
+        ### Local Operation
+        - All cheat processing happens locally on your device
+        - No data transmission to external servers
+        - No user tracking or analytics
+        - Open source code for transparency
+        
+        ### Permissions
+        - **Internet**: For game content loading
+        - **Storage**: For saves and settings
+        - **Network State**: For connectivity checks
+        
+        ## 🔧 Technical Details
+        
+        ### System Requirements
+        - **Android**: API Level 21+ (Android 5.0+)
+        - **RAM**: 2GB minimum, 4GB recommended
+        - **Storage**: 500MB free space
+        - **Processor**: ARM64 or ARM32 support
+        
+        ### Build Information
+        - **JDK**: 8
+        - **Android SDK**: API 30
+        - **Build Tools**: 30.0.3
+        - **Gradle**: Latest compatible version
+        - **Target SDK**: 30
+        - **Min SDK**: 21
+        
+        ## 🐛 Troubleshooting
+        
+        ### Common Issues
+        1. **Menu not opening**: Check if device is detected as mobile
+        2. **Buttons unresponsive**: Verify touch input is working
+        3. **Aimbot not targeting**: Ensure enemies are within 150 units
+        4. **Performance lag**: Disable unused cheats
+        
+        ### Debug Steps
+        1. Check device logcat for "Mobile cheat system initialized"
+        2. Verify all UI elements are visible
+        3. Test touch responsiveness in different areas
+        4. Monitor FPS during aimbot operation
+        
+        ## 📞 Support
+        
+        ### Getting Help
+        - **GitHub Issues**: Report bugs and request features
+        - **Documentation**: Check MOBILE_CHEAT_SYSTEM_DOCUMENTATION.md
+        - **Test Guide**: Run test_mobile_cheats.sh for verification
+        
+        ### Contributing
+        - **Code**: Submit pull requests with improvements
+        - **Documentation**: Help improve guides and examples
+        - **Testing**: Report issues on different devices
+        
+        ## 📄 License
+        
+        This project uses the MIT License. Original Frogue game is also MIT licensed.
+        
+        ## 🎉 Credits
+        
+        ### Original Game
+        - **Frogue**: İlker Işık & Ömer Işık
+        - **License**: MIT
+        
+        ### Mobile Cheat System
+        - **Development**: Enhanced by MiniMax Agent
+        - **Features**: Touch UI, Mobile Aimbot, Gesture Controls
+        - **Date**: November 2025
+        
+        ---
+        
+        **Enjoy enhanced mobile gaming with Frogue! 🎮📱**
+        
+        *For more information, visit the GitHub repository.*
+        EOF
+        
+        echo "📝 Release notes created successfully!"
+      shell: bash
+    
+    - name: Prepare Release Assets
+      run: |
+        echo "📦 Preparing release assets..."
+        
+        mkdir -p release-assets
+        mkdir -p release-assets/apks
+        mkdir -p release-assets/documentation
+        mkdir -p release-assets/scripts
+        
+        # Copy APKs
+        cp android/build/outputs/apk/debug/*.apk release-assets/apks/
+        cp android/build/outputs/apk/release/*.apk release-assets/apks/
+        
+        # Copy documentation
+        cp MOBILE_CHEAT_SYSTEM_DOCUMENTATION.md release-assets/documentation/
+        cp test_mobile_cheats.sh release-assets/scripts/
+        cp RELEASE_NOTES.md release-assets/
+        
+        # Create installation guide
+        cat > release-assets/INSTALLATION_GUIDE.md << 'EOF'
+        # 🚀 Installation Guide - Frogue Mobile Cheats
+        
+        ## Quick Installation
+        
+        ### For Testing (Recommended)
+        1. Download `frogue-mobile-cheats-debug.apk`
+        2. Go to Android Settings → Security → Unknown Sources
+        3. Enable "Install from unknown sources"
+        4. Install the APK
+        5. Launch Frogue and enjoy!
+        
+        ### For Production
+        1. Download `frogue-mobile-cheats-release.apk`
+        2. Sign the APK with your keystore
+        3. Enable "Install from unknown sources"
+        4. Install the signed APK
+        5. Launch Frogue and enjoy!
+        
+        ## Troubleshooting
+        
+        **APK won't install?**
+        - Enable Unknown Sources in Android settings
+        - Ensure sufficient storage space (500MB+)
+        - Check device compatibility (Android 5.0+)
+        
+        **Game crashes on launch?**
+        - Check device has sufficient RAM (2GB+)
+        - Close other apps to free memory
+        - Restart device and try again
+        
+        **Cheats not working?**
+        - Verify mobile detection is working
+        - Check logcat for "Mobile cheat system initialized"
+        - Try restarting the game
+        
+        Enjoy enhanced mobile gaming! 🎮
+        EOF
+        
+        ls -la release-assets/
+      shell: bash
+    
+    - name: Upload Release Assets
+      uses: actions/upload-artifact@v4
+      with:
+        name: mobile-release-${{ github.ref_name }}
+        path: release-assets/
+        retention-days: 365
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: Frogue Mobile Cheats ${{ github.ref_name }}
+        body_path: RELEASE_NOTES.md
+        files: |
+          android/build/outputs/apk/debug/*.apk
+          android/build/outputs/apk/release/*.apk
+          release-assets/INSTALLATION_GUIDE.md
+          release-assets/documentation/MOBILE_CHEAT_SYSTEM_DOCUMENTATION.md
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Build Summary
+      run: |
+        echo "## 🎉 Mobile Release Complete!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 Release Assets:" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Debug APK**: Ready for immediate installation" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Release APK**: Production build (unsigned)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Documentation**: Complete mobile cheat guide" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Installation Guide**: Step-by-step instructions" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🎮 Mobile Cheat Features:" >> $GITHUB_STEP_SUMMARY
+        echo "- 🎯 **Touch Aimbot**: Enhanced mobile targeting with gesture controls" >> $GITHUB_STEP_SUMMARY
+        echo "- 📱 **Floating UI**: Non-intrusive touch interface" >> $GITHUB_STEP_SUMMARY
+        echo "- ⚡ **Performance**: Optimized for mobile devices" >> $GITHUB_STEP_SUMMARY
+        echo "- 🛡️ **All Cheats**: Complete cheat system via touch" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📱 Quick Start:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Download debug APK from artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "2. Install on Android device (5.0+)" >> $GITHUB_STEP_SUMMARY
+        echo "3. Launch Frogue and enjoy enhanced mobile gaming!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Release**: ${{ github.ref_name }} | **Build**: ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+      shell: bash
