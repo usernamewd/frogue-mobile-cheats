@@ -274,82 +274,37 @@ public class CheatSystem {
      * Find the closest enemy to the player
      */
     private static GameEntity findClosestEnemy(Player player) {
-        GameEntity closest = null;
+        if (player == null || player.world == null || player.world.octree == null) {
+            return null;
+        }
+        
+        GameEntity closestEnemy = null;
         float closestDistance = Float.MAX_VALUE;
+        Vector3 tempPos = new Vector3();
         
-        if (player.world == null) return null;
-        
-        Vector3 playerPos = player.hitBox.position;
-        
-        // Get all entities from the octree system
-        Octree octree = player.world.octree;
-        if (octree == null || octree.root == null) return null;
-        
-        // Iterate through all entities to find enemies
-        forAllEntities(octree.root, new EntityIterator() {
-            @Override
-            public boolean process(GameEntity entity) {
-                // Skip dead entities, the player themselves, and non-hostile entities
-                if (entity.dead || entity == player || 
-                    !isHostileEntity(entity)) return false;
-                
-                float distance = playerPos.dst(entity.hitBox.position);
-                if (distance < closestDistance && distance <= aimbotRange) {
-                    closest = entity;
-                    closestDistance = distance;
-                }
-                return false; // Continue iteration
-            }
-        });
-        
-        return closest;
-    }
-    
-    /**
-     * Interface for iterating through all entities in the octree
-     */
-    private interface EntityIterator {
-        boolean process(GameEntity entity);
-    }
-    
-    /**
-     * Iterate through all entities in the octree system starting from root node
-     */
-    private static void forAllEntities(Octree.OctreeNode rootNode, EntityIterator iterator) {
-        if (rootNode != null) {
-            forAllEntitiesRecursive(rootNode, iterator);
-        }
-    }
-    
-    /**
-     * Recursively iterate through all entities in octree nodes
-     */
-    private static void forAllEntitiesRecursive(Octree.OctreeNode node, EntityIterator iterator) {
-        if (node == null) return;
-        
-        // Process entities in this node
-        for (int i = 0; i < node.entities.size; i++) {
-            if (iterator.process(node.entities.get(i))) {
-                return; // Early exit if iterator returns true
+        // Iterate through all entities in the octree
+        for (GameEntity entity : player.world.octree.entities) {
+            if (entity == null || entity == player || entity.dead) continue;
+            
+            // Check if entity is an enemy type
+            String className = entity.getClass().getSimpleName();
+            boolean isEnemy = className.contains("Zombie") || 
+                             className.contains("Frog") || 
+                             className.contains("NPC") ||
+                             className.contains("Boss");
+            
+            if (!isEnemy) continue;
+            
+            entity.getPosition(tempPos);
+            float distance = player.hitBox.position.dst(tempPos);
+            
+            if (distance < closestDistance && distance <= aimbotRange) {
+                closestDistance = distance;
+                closestEnemy = entity;
             }
         }
         
-        // Process objects (some might be entities converted to objects)
-        for (int i = 0; i < node.objects.size; i++) {
-            GameObject obj = node.objects.get(i);
-            if (obj instanceof GameEntity) {
-                if (iterator.process((GameEntity) obj)) {
-                    return; // Early exit if iterator returns true
-                }
-            }
-        }
-        
-        // Recursively process children
-        if (node.children != null) {
-            for (int i = 0; i < node.children.length; i++) {
-                forAllEntitiesRecursive(node.children[i], iterator);
-            }
-        }
+        return closestEnemy;
     }
     
     /**
@@ -365,7 +320,7 @@ public class CheatSystem {
         return className.contains("zombie") || 
                className.contains("frog") || 
                className.contains("boss") ||
-               (entity.health > 0 && entity != null && !entity.getClass().getSimpleName().contains("Player"));
+               (entity.health > 0 && !entity.getClass().getSimpleName().contains("Player"));
     }
     
     /**
@@ -596,11 +551,10 @@ public class CheatSystem {
     }
     
     /**
-     * Render the cheat menu (for UI integration)
+     * Execute selected cheat by index (for UI integration)
      */
-    public static String renderMenu() {
-        // Return empty string since we're now using dialog-based UI
-        return "";
+    public static void executeSelectedCheat(int index) {
+        toggleCheatByIndex(index);
     }
     
     /**
