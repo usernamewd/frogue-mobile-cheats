@@ -8,6 +8,8 @@ import io.github.necrashter.natural_revenge.world.player.Player;
 import io.github.necrashter.natural_revenge.world.player.Firearm;
 import io.github.necrashter.natural_revenge.world.player.PlayerWeapon;
 import io.github.necrashter.natural_revenge.world.entities.GameEntity;
+import io.github.necrashter.natural_revenge.world.GameObject;
+import io.github.necrashter.natural_revenge.world.Octree;
 
 /**
  * Enhanced cheat system for Frogue with aimbot and visual menu
@@ -54,6 +56,9 @@ public class CheatSystem {
         "God Mode", "Unlimited Ammo", "Speed Hack", "No Recoil", 
         "Fast Reload", "Aimbot", "Teleporter", "Wall Hack"
     };
+    
+    // Dialog reference for proper management (removed - now handled by GameScreen)
+    // private static CheatMenuDialog cheatDialog = null;
     
     // Key binding constants
     private static final int[] NUM_KEYS = {
@@ -112,27 +117,11 @@ public class CheatSystem {
     }
     
     /**
-     * Handle menu navigation controls
+     * Handle menu navigation controls (simplified - now handled by GameScreen dialog)
      */
     private static void handleMenuControls() {
-        if (!showCheatMenu) return;
-        
-        if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-            selectedMenuItem = Math.max(0, selectedMenuItem - 1);
-        }
-        
-        if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-            selectedMenuItem = Math.min(menuItems.length - 1, selectedMenuItem + 1);
-        }
-        
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || 
-            Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            toggleCheatByIndex(selectedMenuItem);
-        }
-        
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            showCheatMenu = false;
-        }
+        // Menu controls are now handled by the GameScreen dialog system
+        // This method is kept for potential future use
     }
     
     /**
@@ -288,13 +277,95 @@ public class CheatSystem {
         GameEntity closest = null;
         float closestDistance = Float.MAX_VALUE;
         
+        if (player.world == null) return null;
+        
         Vector3 playerPos = player.hitBox.position;
         
-        // This would need access to the world's entity list
-        // For now, return a placeholder - this would need integration with the game's entity system
-        // Implementation depends on how entities are stored in GameWorld
+        // Get all entities from the octree system
+        Octree octree = player.world.octree;
+        if (octree == null || octree.root == null) return null;
+        
+        // Iterate through all entities to find enemies
+        forAllEntities(octree.root, new EntityIterator() {
+            @Override
+            public boolean process(GameEntity entity) {
+                // Skip dead entities, the player themselves, and non-hostile entities
+                if (entity.dead || entity == player || 
+                    !isHostileEntity(entity)) return false;
+                
+                float distance = playerPos.dst(entity.hitBox.position);
+                if (distance < closestDistance && distance <= aimbotRange) {
+                    closest = entity;
+                    closestDistance = distance;
+                }
+                return false; // Continue iteration
+            }
+        });
         
         return closest;
+    }
+    
+    /**
+     * Interface for iterating through all entities in the octree
+     */
+    private interface EntityIterator {
+        boolean process(GameEntity entity);
+    }
+    
+    /**
+     * Iterate through all entities in the octree system starting from root node
+     */
+    private static void forAllEntities(Octree.OctreeNode rootNode, EntityIterator iterator) {
+        if (rootNode != null) {
+            forAllEntitiesRecursive(rootNode, iterator);
+        }
+    }
+    
+    /**
+     * Recursively iterate through all entities in octree nodes
+     */
+    private static void forAllEntitiesRecursive(Octree.OctreeNode node, EntityIterator iterator) {
+        if (node == null) return;
+        
+        // Process entities in this node
+        for (int i = 0; i < node.entities.size; i++) {
+            if (iterator.process(node.entities.get(i))) {
+                return; // Early exit if iterator returns true
+            }
+        }
+        
+        // Process objects (some might be entities converted to objects)
+        for (int i = 0; i < node.objects.size; i++) {
+            GameObject obj = node.objects.get(i);
+            if (obj instanceof GameEntity) {
+                if (iterator.process((GameEntity) obj)) {
+                    return; // Early exit if iterator returns true
+                }
+            }
+        }
+        
+        // Recursively process children
+        if (node.children != null) {
+            for (int i = 0; i < node.children.length; i++) {
+                forAllEntitiesRecursive(node.children[i], iterator);
+            }
+        }
+    }
+    
+    /**
+     * Check if an entity is hostile (enemy of the player)
+     */
+    private static boolean isHostileEntity(GameEntity entity) {
+        if (entity == null) return false;
+        
+        // Check entity class names or types to determine if it's hostile
+        String className = entity.getClass().getSimpleName().toLowerCase();
+        
+        // Hostile entity patterns
+        return className.contains("zombie") || 
+               className.contains("frog") || 
+               className.contains("boss") ||
+               (entity.health > 0 && entity != null && !entity.getClass().getSimpleName().contains("Player"));
     }
     
     /**
@@ -528,19 +599,15 @@ public class CheatSystem {
      * Render the cheat menu (for UI integration)
      */
     public static String renderMenu() {
-        if (!showCheatMenu) return "";
-        
-        StringBuilder sb = new StringBuilder();
-        sb.append("=== FROGUE CHEAT MENU ===\n\n");
-        
-        boolean[] states = getCheatStates();
-        for (int i = 0; i < menuItems.length; i++) {
-            String status = states[i] ? " [ON]" : " [OFF]";
-            String arrow = (i == selectedMenuItem) ? ">> " : "   ";
-            sb.append(arrow).append(menuItems[i]).append(status).append("\n");
-        }
-        
-        sb.append("\nNavigation: UP/DOWN | Toggle: ENTER/SPACE | Close: ESC");
-        return sb.toString();
+        // Return empty string since we're now using dialog-based UI
+        return "";
+    }
+    
+    /**
+     * Render the cheat menu (for UI integration)
+     */
+    public static String renderMenu() {
+        // Return empty string since we're now using dialog-based UI
+        return "";
     }
 }

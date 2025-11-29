@@ -407,6 +407,13 @@ public class GameScreen implements Screen {
                 showWeaponInventoryDialog();
             }
         }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F11)) {
+            if (currentDialog != null) {
+                currentDialog.hide();
+            } else {
+                showCheatDialog();
+            }
+        }
         if (!world.player.inputAdapter.disabled) {
             getPlayerMovement(world.player.movementInput);
         } else {
@@ -772,6 +779,71 @@ public class GameScreen implements Screen {
 
         // Use the proper dialog management system instead of directly showing
         showDialog(weaponDialog, true);
+    }
+    
+    private void showCheatDialog() {
+        final Dialog cheatDialog = new Dialog("Frogue Cheat Menu", Main.skin);
+        
+        // Set dialog size and position
+        cheatDialog.setSize(600, 500);
+        cheatDialog.setPosition((1280 - 600) / 2f, (720 - 500) / 2f);
+        
+        // Create content table
+        Table contentTable = new Table(Main.skin);
+        contentTable.pad(20);
+        
+        // Create cheat buttons
+        String[] menuItems = CheatSystem.getMenuItems();
+        boolean[] states = CheatSystem.getCheatStates();
+        
+        for (int i = 0; i < menuItems.length; i++) {
+            final int index = i;
+            final TextButton cheatButton = new TextButton(
+                menuItems[i] + ": " + (states[i] ? "ON" : "OFF"), Main.skin);
+            
+            cheatButton.addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    // Toggle this cheat
+                    switch (index) {
+                        case 0: 
+                            CheatSystem.godMode = !CheatSystem.godMode; 
+                            if (CheatSystem.godMode) CheatSystem.infiniteHealth = true;
+                            break;
+                        case 1: CheatSystem.unlimitedAmmo = !CheatSystem.unlimitedAmmo; break;
+                        case 2: CheatSystem.speedHack = !CheatSystem.speedHack; break;
+                        case 3: CheatSystem.noRecoil = !CheatSystem.noRecoil; break;
+                        case 4: CheatSystem.fastReload = !CheatSystem.fastReload; break;
+                        case 5: CheatSystem.aimbot = !CheatSystem.aimbot; break;
+                        case 6: CheatSystem.teleporter = !CheatSystem.teleporter; break;
+                        case 7: CheatSystem.wallHack = !CheatSystem.wallHack; break;
+                    }
+                    
+                    // Update button text
+                    boolean[] newStates = CheatSystem.getCheatStates();
+                    cheatButton.setText(menuItems[index] + ": " + (newStates[index] ? "ON" : "OFF"));
+                }
+            });
+            
+            contentTable.add(cheatButton).padBottom(10).row();
+        }
+        
+        // Add content to dialog
+        cheatDialog.getContentTable().add(contentTable);
+        
+        // Add control buttons
+        TextButton closeButton = new TextButton("Close (ESC)", Main.skin);
+        closeButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                cheatDialog.hide();
+            }
+        });
+        
+        cheatDialog.button(closeButton);
+        
+        // Show the dialog
+        showDialog(cheatDialog, false);
     }
 
     private String getWeaponType(PlayerWeapon weapon) {
