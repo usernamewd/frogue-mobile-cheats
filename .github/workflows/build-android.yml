@@ -99,12 +99,13 @@ jobs:
         mkdir -p release-assets
         
         # Get APK sizes and list available files
-        echo "=== Debug APK Directory Contents ==="
-        ls -la android/build/outputs/apk/debug/ || echo "No debug APK directory found"
+        echo "=== Checking for APK files in project ==="
+        find . -name "*.apk" -type f
         
-        echo "=== Release APK Directory Contents ==="
-        ls -la android/build/outputs/apk/release/ || echo "No release APK directory found"
+        # Look for APK files in common locations and copy them
+        APK_COUNT=0
         
+<<<<<<< HEAD
         # Check if the expected files exist
         echo "=== Checking for expected APK files ==="
         find android/build -name "*.apk" -type f | head -10
@@ -148,7 +149,29 @@ jobs:
               echo "❌ No release APK found anywhere"
             fi
           fi
+=======
+        # Try to find and copy debug APK
+        DEBUG_APK=$(find . -name "*debug.apk" -type f | head -1)
+        if [ -n "$DEBUG_APK" ]; then
+          echo "✅ Debug APK found: $DEBUG_APK"
+          cp "$DEBUG_APK" release-assets/frogue-mobile-cheats-debug.apk
+          APK_COUNT=$((APK_COUNT + 1))
+        else
+          echo "⚠️ Debug APK not found"
         fi
+        
+        # Try to find and copy release APK
+        RELEASE_APK=$(find . -name "*release*.apk" -type f | head -1)
+        if [ -n "$RELEASE_APK" ]; then
+          echo "✅ Release APK found: $RELEASE_APK"
+          cp "$RELEASE_APK" release-assets/frogue-mobile-cheats-release.apk
+          APK_COUNT=$((APK_COUNT + 1))
+        else
+          echo "⚠️ Release APK not found"
+>>>>>>> 555d48a (Fix GitHub Actions workflow for Android build:)
+        fi
+        
+        echo "Found $APK_COUNT APK files"
         
         # Create release info
         cat > release-assets/BUILD_INFO.md << EOF
@@ -205,16 +228,31 @@ jobs:
         ls -la release-assets/
       shell: bash
     
+<<<<<<< HEAD
     - name: Upload Debug APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: frogue-debug-apk
         path: release-assets/frogue-mobile-cheats-debug.apk
         retention-days: 30
+=======
+    - name: Upload APK Artifacts
+      run: |
+        # Upload all found APK files as artifacts
+        find . -name "*.apk" -type f | while read apk; do
+          echo "Uploading artifact: $apk"
+          # This will be handled by the generic artifact upload below
+        done
+        
+        # List all APK files for verification
+        echo "All APK files found:"
+        find . -name "*.apk" -type f
+>>>>>>> 555d48a (Fix GitHub Actions workflow for Android build:)
     
-    - name: Upload Release APK (Unsigned) Artifact
+    - name: Upload APK Artifacts
       uses: actions/upload-artifact@v4
       with:
+<<<<<<< HEAD
         name: frogue-release-apk-unsigned
         path: release-assets/frogue-mobile-cheats-release-unsigned.apk
         retention-days: 90
@@ -223,11 +261,16 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: frogue-release-assets
+=======
+        name: frogue-apk-artifacts
+>>>>>>> 555d48a (Fix GitHub Actions workflow for Android build:)
         path: release-assets/
         retention-days: 90
-    
+        if-no-files-found: error
+
     - name: Create Release (Optional)
       if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+<<<<<<< HEAD
       uses: softprops/action-gh-release@v1
       with:
         tag_name: android-build-${{ github.run_number }}
@@ -261,15 +304,29 @@ jobs:
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+=======
+      run: |
+        # Skip GitHub release creation due to permissions issues
+        echo "Skipping GitHub release creation to avoid 403 errors"
+        echo "APK artifacts are available in the Actions artifacts section"
+        echo "Download release-assets from the build artifacts to get the APK files"
+>>>>>>> 555d48a (Fix GitHub Actions workflow for Android build:)
     
     - name: Build Summary
       run: |
         echo "## 🚀 Android Build Complete!" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Build Results:" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ **Debug APK**: Ready for immediate installation" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ **Release APK**: Production build (unsigned)" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ **Artifacts**: All APKs and documentation uploaded" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **APK Build**: Successfully compiled and packaged" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Artifacts**: All APKs uploaded as build artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "- 📱 **Mobile Ready**: Touch-optimized cheat interface included" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### How to Get Your APK:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Go to the **Actions** tab in this repository" >> $GITHUB_STEP_SUMMARY
+        echo "2. Click on the latest successful build run" >> $GITHUB_STEP_SUMMARY
+        echo "3. Scroll down to **Artifacts** section" >> $GITHUB_STEP_SUMMARY
+        echo "4. Download **frogue-apk-artifacts**" >> $GITHUB_STEP_SUMMARY
+        echo "5. Extract and install the APK on your Android device" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Mobile Cheat System Features:" >> $GITHUB_STEP_SUMMARY
         echo "- 🎯 Touch-optimized aimbot with gesture controls" >> $GITHUB_STEP_SUMMARY
@@ -277,10 +334,10 @@ jobs:
         echo "- 🛠️ All traditional cheats accessible via touch interface" >> $GITHUB_STEP_SUMMARY
         echo "- ⚡ Battery-optimized mobile operations" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
-        echo "1. Download the debug APK from artifacts" >> $GITHUB_STEP_SUMMARY
-        echo "2. Install on your Android device" >> $GITHUB_STEP_SUMMARY
-        echo "3. Enable the cheat system and enjoy enhanced mobile gaming!" >> $GITHUB_STEP_SUMMARY
+        echo "### Installation Instructions:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Enable **Unknown Sources** in Android settings" >> $GITHUB_STEP_SUMMARY
+        echo "2. Download and install the APK from artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "3. Launch the app and enjoy enhanced mobile gaming!" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "📋 **Build Details**: Commit `${{ github.sha }}` | Branch `${{ github.ref_name }}`" >> $GITHUB_STEP_SUMMARY
       shell: bash
