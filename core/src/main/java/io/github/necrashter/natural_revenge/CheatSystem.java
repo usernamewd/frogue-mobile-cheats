@@ -42,6 +42,9 @@ public class CheatSystem {
     };
     private static int currentTeleportIndex = 0;
     
+    // Cache for enemy types (for performance)
+    private static String[] cachedEnemyTypes = null;
+    
     // Aimbot settings
     private static float aimbotRange = 200f;
     private static float aimbotSmoothness = 0.1f;
@@ -91,6 +94,12 @@ public class CheatSystem {
         handleCheatKeys(player);
         applyCheats(player, delta);
         updateAimbot(player, delta);
+        
+        // Memory management for low-end devices
+        if (Main.isLowEndDevice && Gdx.graphics.getFrameId() % 180 == 0) {
+            // Force garbage collection every 3 seconds on low-end devices
+            System.gc();
+        }
     }
     
     /**
@@ -243,6 +252,11 @@ public class CheatSystem {
         
         lastAimbotTime += delta;
         
+        // Reduced update frequency for low-end devices
+        if (Main.isLowEndDevice && Gdx.graphics.getFrameId() % 3 != 0) {
+            return; // Update aimbot only every 3rd frame on low-end devices
+        }
+        
         // Find closest enemy
         GameEntity closestEnemy = findClosestEnemy(player);
         if (closestEnemy == null) return;
@@ -254,8 +268,11 @@ public class CheatSystem {
         Vector3 targetPos = closestEnemy.hitBox.position;
         Vector3 direction = targetPos.cpy().sub(playerPos).nor();
         
-        // Apply smoothing
-        float smoothingFactor = Math.min(1f, aimbotSmoothness * delta * 60f);
+        // Apply smoothing - reduced for low-end devices
+        float smoothingFactor = Main.isLowEndDevice ? 
+            Math.min(1f, (aimbotSmoothness * 0.5f) * delta * 60f) : // 50% less smoothing on low-end
+            Math.min(1f, aimbotSmoothness * delta * 60f);
+            
         Vector3 currentForward = player.forward.cpy();
         currentForward.lerp(direction, smoothingFactor);
         player.forward.set(currentForward.nor());
@@ -282,16 +299,35 @@ public class CheatSystem {
         float closestDistance = Float.MAX_VALUE;
         Vector3 tempPos = new Vector3();
         
+        // Cache enemy types for performance on low-end devices
+        if (cachedEnemyTypes == null) {
+            cachedEnemyTypes = new String[] {"Zombie", "Frog", "NPC", "Boss"};
+        }
+        
+        // Reduce search frequency on low-end devices
+        if (Main.isLowEndDevice && Gdx.graphics.getFrameId() % 2 != 0) {
+            return currentTarget; // Return cached target if available
+        }
+        
         // Iterate through all entities in the octree
         for (GameEntity entity : player.world.octree.entities) {
             if (entity == null || entity == player || entity.dead) continue;
             
-            // Check if entity is an enemy type
+            // Faster enemy type checking for low-end devices
+            boolean isEnemy = false;
             String className = entity.getClass().getSimpleName();
-            boolean isEnemy = className.contains("Zombie") || 
-                             className.contains("Frog") || 
-                             className.contains("NPC") ||
-                             className.contains("Boss");
+            
+            if (Main.isLowEndDevice) {
+                // Simplified enemy detection for low-end devices
+                char firstChar = className.length() > 0 ? className.charAt(0) : ' ';
+                isEnemy = firstChar == 'Z' || firstChar == 'F' || firstChar == 'N' || firstChar == 'B';
+            } else {
+                // Full enemy detection for regular devices
+                isEnemy = className.contains("Zombie") || 
+                         className.contains("Frog") || 
+                         className.contains("NPC") ||
+                         className.contains("Boss");
+            }
             
             if (!isEnemy) continue;
             

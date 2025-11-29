@@ -30,6 +30,12 @@ public class Main extends Game {
     private final PostInit postInit;
     public static Skin skin;
     public static Skin skin2;
+    
+    // Low-end device optimizations
+    public static boolean isLowEndDevice = false;
+    public static int targetFPS = 60;
+    public static float renderScale = 1.0f;
+    public static boolean useLowQuality = false;
 
     public abstract static class PostInit {
         public abstract void run(Main main);
@@ -86,6 +92,10 @@ public class Main extends Game {
         // Initialize cheat system
         CheatSystem.initialize();
         
+        // Detect low-end device and apply optimizations
+        detectLowEndDevice();
+        applyLowEndOptimizations();
+        
         loadPreferences();
         if (Main.isMobile()) {
             uiScale = MathUtils.clamp(((Gdx.graphics.getDensity() / .5783681f) - 1.0f) / 2f + 1f, .5f, 2f);
@@ -105,6 +115,19 @@ public class Main extends Game {
     public void render () {
         float delta = Gdx.graphics.getDeltaTime();
         music.update(delta);
+        
+        // FPS limiting for low-end devices
+        if (isLowEndDevice && targetFPS > 0) {
+            static long lastFrameTime = 0;
+            long targetFrameTime = 1000 / targetFPS; // milliseconds
+            long currentTime = System.currentTimeMillis();
+            
+            if (currentTime - lastFrameTime < targetFrameTime) {
+                return; // Skip this frame to maintain target FPS
+            }
+            lastFrameTime = currentTime;
+        }
+        
         if (screen != null) screen.render(delta);
     }
 
@@ -139,5 +162,68 @@ public class Main extends Game {
     public static String float1Decimal(float f) {
         int decimal = MathUtils.round((f - (int) f) * 10f);
         return String.valueOf((int)f) + '.' + decimal;
+    }
+    
+    /**
+     * Detect if this is a low-end device based on hardware specs
+     */
+    private void detectLowEndDevice() {
+        if (!isMobile()) return;
+        
+        // Get device information
+        String manufacturer = android.os.Build.MANUFACTURER.toLowerCase();
+        String model = android.os.Build.MODEL.toLowerCase();
+        String product = android.os.Build.PRODUCT.toLowerCase();
+        
+        // Known low-end device patterns
+        boolean isLowEndPattern = manufacturer.contains("huawei") && model.contains("kob2") ||
+                                 manufacturer.contains("huawei") && (model.contains("t") || model.contains("lite")) ||
+                                 manufacturer.contains("xiaomi") && model.contains("redmi") ||
+                                 manufacturer.contains("samsung") && model.contains("a") ||
+                                 model.contains("mt6765") || model.contains("mt6739") || model.contains("mt6580");
+        
+        // Check if device has limited memory or old Android
+        boolean limitedMemory = java.lang.Runtime.getRuntime().maxMemory() < 128 * 1024 * 1024; // < 128MB
+        boolean oldAndroid = android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M;
+        boolean smallScreen = Gdx.graphics.getWidth() < 1000;
+        
+        // Consider low-end if it matches patterns or has multiple limiting factors
+        isLowEndDevice = isLowEndPattern || (limitedMemory && (oldAndroid || smallScreen));
+        
+        Gdx.app.log("Frogue", "Low-end device detected: " + isLowEndDevice);
+        if (isLowEndDevice) {
+            Gdx.app.log("Frogue", "Manufacturer: " + manufacturer + ", Model: " + model + ", MaxMemory: " + (Runtime.getRuntime().maxMemory() / 1024 / 1024) + "MB");
+        }
+    }
+    
+    /**
+     * Apply performance optimizations for low-end devices
+     */
+    private void applyLowEndOptimizations() {
+        if (!isLowEndDevice) return;
+        
+        // For Huawei MatePad T and similar devices
+        if (android.os.Build.MODEL.toLowerCase().contains("kob2")) {
+            // Specific optimizations for Huawei MatePad T
+            targetFPS = 30; // Reduce to 30 FPS for better stability
+            renderScale = 0.8f; // Reduce rendering resolution by 20%
+            useLowQuality = true;
+            
+            // Force garbage collection more frequently
+            Gdx.app.postRunnable(new Runnable() {
+                @Override
+                public void run() {
+                    System.gc();
+                }
+            });
+            
+            Gdx.app.log("Frogue", "Applied Huawei MatePad T optimizations - 30 FPS, 0.8x render scale");
+        } else {
+            // General low-end optimizations
+            targetFPS = 45;
+            renderScale = 0.9f;
+            useLowQuality = true;
+            Gdx.app.log("Frogue", "Applied general low-end optimizations - 45 FPS, 0.9x render scale");
+        }
     }
 }
